@@ -278,7 +278,96 @@ body {
 .error-banner__icon { font-size: 16px; }
 .error-banner__msg { flex: 1; }
 .detail-back { display: none; margin: var(--gap-1); align-self: flex-start; }
-.detail__actions { display: flex; gap: 6px; margin-top: 8px; }
+.detail__actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+/* ---------- Detail Dashboard Widgets ---------- */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-2);
+  margin-top: var(--gap-2);
+}
+.widget {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: var(--gap-2);
+  box-shadow: var(--shadow); display: flex; flex-direction: column;
+}
+.widget--span2 { grid-column: span 2; }
+.widget--span4 { grid-column: span 4; }
+.widget__head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.widget__icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent); font-size: 14px; flex-shrink: 0;
+}
+.widget__icon--green { background: rgba(5,150,105,0.12); color: var(--success); }
+.widget__icon--amber { background: rgba(217,119,6,0.12); color: var(--warning); }
+.widget__icon--red { background: rgba(220,38,38,0.12); color: var(--danger); }
+.widget__icon--gray { background: var(--bg-card); color: var(--text-muted); }
+.widget__title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.widget__value { font-size: 28px; font-weight: 800; line-height: 1.1; color: var(--text); }
+.widget__sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.widget__body { font-size: 14px; color: var(--text); flex: 1; }
+
+.action-list { list-style: none; padding: 0; margin: 0; }
+.action-list li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+.action-list li:hover { background: var(--bg-card); }
+.action-list .task-checkbox {
+  cursor: pointer; flex-shrink: 0; margin-top: 2px;
+  width: 18px; height: 18px;
+  border: 1.5px solid var(--border); border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg); font-size: 12px;
+}
+.action-list .task-checkbox--done {
+  background: var(--success); border-color: var(--success);
+  color: #FFFFFF; font-weight: 700;
+}
+.action-list .task-text { flex: 1; line-height: 1.4; }
+.action-list li.is-done .task-text { color: var(--text-muted); text-decoration: line-through; }
+.action-list .task-meta { font-size: 11px; color: var(--text-muted); margin-left: 4px; }
+
+.donut {
+  --p: 0;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--bg-card) 0);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.donut::after {
+  content: ''; position: absolute; inset: 6px;
+  background: var(--bg); border-radius: 50%;
+}
+.donut__num {
+  position: relative; z-index: 1;
+  font-size: 14px; font-weight: 700; color: var(--text);
+}
+.donut-row { display: flex; align-items: center; gap: 12px; }
+
+.attendee-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--bg-card); color: var(--text);
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border);
+}
+.attendee-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.section-card {
+  background: var(--bg-card); border-radius: var(--radius-sm);
+  padding: 12px; font-size: 14px;
+}
+.next-meeting {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: var(--accent-soft); color: var(--accent);
+  border-radius: var(--radius-sm); font-weight: 600;
+}
+.next-meeting__icon { font-size: 18px; }
 
 /* ---------- Modal ---------- */
 .modal-overlay {
@@ -335,6 +424,12 @@ body {
   .topbar__right { width: 100%; }
   #search-input { flex: 1; min-width: 0; }
   .detail__title { font-size: 18px; }
+  .dash-grid { grid-template-columns: repeat(2, 1fr); }
+  .widget--span2, .widget--span4 { grid-column: span 2; }
+}
+@media (max-width: 480px) {
+  .dash-grid { grid-template-columns: 1fr; }
+  .widget--span2, .widget--span4 { grid-column: span 1; }
 }
 @media (max-width: 480px) {
   .kpis { grid-template-columns: 1fr 1fr; padding: var(--gap-2); }
@@ -1047,15 +1142,109 @@ window.STANDALONE_SAMPLE = {
     if (!mdBody || !mdBody.trim()) return '';
     return '<div class="detail__section"><h2>' + MD.escapeHtml(label) + '</h2><div class="detail__body">' + MD.render(mdBody) + '</div></div>';
   }
+  function parseActionLines(md) {
+    if (!md) return [];
+    var lines = String(md).split('\n');
+    var actions = [];
+    lines.forEach(function (line, i) {
+      var m = line.match(/^(\s*[-*]\s+\[)([ xX])(\]\s+)(.*)$/);
+      if (m) actions.push({ done: /[xX]/.test(m[2]), text: m[4], lineIndex: i });
+    });
+    return actions;
+  }
+  function toggleActionInMarkdown(md, lineIndex) {
+    var lines = String(md || '').split('\n');
+    if (lineIndex < 0 || lineIndex >= lines.length) return md;
+    lines[lineIndex] = lines[lineIndex].replace(/^(\s*[-*]\s+\[)([ xX])(\]\s+)/, function (_, p1, c, p3) {
+      return p1 + (/[xX]/.test(c) ? ' ' : 'x') + p3;
+    });
+    return lines.join('\n');
+  }
+
+  function kpiWidget(title, value, sub, icon, tone) {
+    return '<div class="widget">' +
+      '<div class="widget__head">' +
+        '<div class="widget__icon widget__icon--' + tone + '">' + icon + '</div>' +
+        '<div class="widget__title">' + MD.escapeHtml(title) + '</div>' +
+      '</div>' +
+      '<div class="widget__value">' + value + '</div>' +
+      (sub ? '<div class="widget__sub">' + MD.escapeHtml(sub) + '</div>' : '') +
+    '</div>';
+  }
+  function donutWidget(title, percent, sub) {
+    return '<div class="widget">' +
+      '<div class="widget__head">' +
+        '<div class="widget__icon widget__icon--green">✓</div>' +
+        '<div class="widget__title">' + MD.escapeHtml(title) + '</div>' +
+      '</div>' +
+      '<div class="donut-row">' +
+        '<div class="donut" style="--p:' + percent + '"><span class="donut__num">' + percent + '%</span></div>' +
+        '<div><div class="widget__sub" style="font-size:13px">' + MD.escapeHtml(sub) + '</div></div>' +
+      '</div>' +
+    '</div>';
+  }
+  function bodyWidget(title, icon, tone, mdBody, span, emptyText) {
+    var inner = (mdBody && mdBody.trim()) ? MD.render(mdBody) :
+      '<p style="color:var(--text-muted);font-size:13px;margin:0;">' + MD.escapeHtml(emptyText || '내용이 없습니다.') + '</p>';
+    return '<div class="widget widget--span' + (span || 2) + '">' +
+      '<div class="widget__head">' +
+        '<div class="widget__icon widget__icon--' + tone + '">' + icon + '</div>' +
+        '<div class="widget__title">' + MD.escapeHtml(title) + '</div>' +
+      '</div>' +
+      '<div class="widget__body detail__body">' + inner + '</div>' +
+    '</div>';
+  }
+  function renderActionListWidget(row, isLocal) {
+    var actions = parseActionLines(row.actions_md);
+    var bodyHtml;
+    if (actions.length === 0) {
+      bodyHtml = '<p style="color:var(--text-muted);font-size:13px;margin:0;">액션아이템이 없습니다.</p>';
+    } else {
+      bodyHtml = '<ul class="action-list">' + actions.map(function (a) {
+        return '<li class="' + (a.done ? 'is-done' : '') + '" data-line="' + a.lineIndex + '">' +
+          '<span class="task-checkbox' + (a.done ? ' task-checkbox--done' : '') + '" ' +
+                'title="' + (isLocal ? '클릭하여 완료 토글' : '시트에서 편집') + '">' +
+            (a.done ? '✓' : '') +
+          '</span>' +
+          '<span class="task-text">' + MD.escapeHtml(a.text) + '</span>' +
+        '</li>';
+      }).join('') + '</ul>';
+    }
+    var done = actions.filter(function (a) { return a.done; }).length;
+    var sub = actions.length > 0 ? (done + '/' + actions.length + ' 완료') : '';
+    return '<div class="widget widget--span2">' +
+      '<div class="widget__head">' +
+        '<div class="widget__icon widget__icon--green">✓</div>' +
+        '<div class="widget__title">액션아이템</div>' +
+        (sub ? '<span style="margin-left:auto;font-size:12px;color:var(--text-muted)">' + sub + '</span>' : '') +
+      '</div>' +
+      '<div class="widget__body">' + bodyHtml + '</div>' +
+    '</div>';
+  }
+
   function detail(row, callbacks) {
     var panel = el('detail');
     var emptyState = el('detail-empty');
     if (!row) { panel.hidden = true; panel.innerHTML = ''; emptyState.style.display = ''; return; }
     emptyState.style.display = 'none';
     panel.hidden = false;
+
     var tasks = MD.countTasks(row.actions_md);
     var rate = tasks.total === 0 ? 0 : Math.round((tasks.done / tasks.total) * 100);
+    var open = tasks.total - tasks.done;
+    var decisionCount = ((row.decisions_md || '').match(/^\s*[-*]\s+/gm) || []).length;
+    var agendaCount = ((row.agenda_md || '').match(/^\s*[-*]\s+/gm) || []).length;
     var isLocal = row._local === true;
+
+    var attendees = (row.attendees || '').split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+    var attendeeHtml = attendees.length > 0
+      ? '<div class="attendee-list">' + attendees.map(function (a) { return '<span class="attendee-chip">' + MD.escapeHtml(a) + '</span>'; }).join('') + '</div>'
+      : '<p style="color:var(--text-muted);font-size:13px;margin:0;">참석자 정보가 없습니다.</p>';
+
+    var nextMeetingHtml = row.next_meeting
+      ? '<div class="next-meeting"><span class="next-meeting__icon">📅</span><span>다음 회의: ' + MD.escapeHtml(row.next_meeting) + '</span></div>'
+      : '<p style="color:var(--text-muted);font-size:13px;margin:0;">예정된 다음 회의가 없습니다.</p>';
+
     var actionsBar = isLocal
       ? '<div class="detail__actions">' +
           '<button class="btn btn--ghost btn--sm" data-act="edit">✎ 편집</button>' +
@@ -1063,6 +1252,7 @@ window.STANDALONE_SAMPLE = {
           '<span class="tag" style="margin-left:auto">로컬 저장</span>' +
         '</div>'
       : (row.timestamp ? '<div class="detail__actions"><span class="tag" style="margin-left:auto">시트 데이터 · 시트에서 편집</span></div>' : '');
+
     panel.innerHTML =
       '<header class="detail__head">' +
         '<h1 class="detail__title">' + MD.escapeHtml(row.title || '(제목없음)') + '</h1>' +
@@ -1071,25 +1261,53 @@ window.STANDALONE_SAMPLE = {
           (row.department ? '<span>🏢 ' + MD.escapeHtml(row.department) + '</span>' : '') +
           '<span>🗂 ' + MD.escapeHtml(row.project_tag || '기타') + '</span>' +
           '<span>✍️ ' + MD.escapeHtml(row.author || '') + '</span>' +
-          '<span>👥 ' + MD.escapeHtml(row.attendees || '') + '</span>' +
-          (tasks.total > 0 ? '<span>✅ ' + tasks.done + '/' + tasks.total + ' (' + rate + '%)</span>' : '') +
         '</div>' +
         actionsBar +
       '</header>' +
-      section('안건', row.agenda_md) +
-      section('결정사항', row.decisions_md) +
-      section('액션아이템', row.actions_md) +
-      (row.next_meeting ? section('다음 회의', '다음 회의: ' + row.next_meeting) : '') +
-      section('비고', row.note_md);
+      '<div class="dash-grid">' +
+        donutWidget('완료율', rate, tasks.total > 0 ? tasks.done + '/' + tasks.total + ' 완료' : '액션 없음') +
+        kpiWidget('미해결 액션', open, '진행중', '!', 'amber') +
+        kpiWidget('결정사항', decisionCount, '확정 건수', '★', 'gray') +
+        kpiWidget('안건', agendaCount, '논의 항목', '▣', 'gray') +
+        renderActionListWidget(row, isLocal) +
+        bodyWidget('결정사항', '★', 'amber', row.decisions_md, 2, '결정사항이 기록되지 않았습니다.') +
+        bodyWidget('안건', '▣', 'gray', row.agenda_md, 2, '안건이 기록되지 않았습니다.') +
+        '<div class="widget widget--span2">' +
+          '<div class="widget__head">' +
+            '<div class="widget__icon">👥</div>' +
+            '<div class="widget__title">참석자 ' + (attendees.length > 0 ? '(' + attendees.length + ')' : '') + '</div>' +
+          '</div>' +
+          attendeeHtml +
+        '</div>' +
+        '<div class="widget widget--span2">' +
+          '<div class="widget__head">' +
+            '<div class="widget__icon widget__icon--green">📅</div>' +
+            '<div class="widget__title">다음 회의</div>' +
+          '</div>' +
+          nextMeetingHtml +
+        '</div>' +
+        (row.note_md && row.note_md.trim()
+          ? bodyWidget('비고', '✎', 'gray', row.note_md, 4, '')
+          : ''
+        ) +
+      '</div>';
 
     if (isLocal && callbacks) {
       var editBtn = panel.querySelector('[data-act="edit"]');
       var delBtn = panel.querySelector('[data-act="delete"]');
       if (editBtn) editBtn.addEventListener('click', function () { callbacks.onEdit(row); });
       if (delBtn) delBtn.addEventListener('click', function () { callbacks.onDelete(row); });
+      var checks = panel.querySelectorAll('.action-list .task-checkbox');
+      checks.forEach(function (cb) {
+        cb.addEventListener('click', function () {
+          var li = cb.closest('li');
+          var idx = parseInt(li.dataset.line, 10);
+          if (callbacks.onActionToggle) callbacks.onActionToggle(row, idx);
+        });
+      });
     }
   }
-  global.MeetingRender = { kpis: kpis, list: list, detail: detail, projectChips: projectChips, departmentChips: departmentChips, rowKey: rowKey };
+  global.MeetingRender = { kpis: kpis, list: list, detail: detail, projectChips: projectChips, departmentChips: departmentChips, rowKey: rowKey, toggleActionInMarkdown: toggleActionInMarkdown };
 })(window);
 
 /* ====== App Controller ====== */
@@ -1135,6 +1353,17 @@ window.STANDALONE_SAMPLE = {
       state.selectedKey = null;
       reload();
       toast('삭제되었습니다', 2000);
+    },
+    onActionToggle: function (row, lineIndex) {
+      if (!row._local) {
+        toast('시트 데이터는 시트에서 편집해주세요', 2500);
+        return;
+      }
+      var newMd = MeetingRender.toggleActionInMarkdown(row.actions_md, lineIndex);
+      if (newMd === row.actions_md) return;
+      row.actions_md = newMd;
+      LocalStore.upsert(row);
+      reload();
     }
   };
 

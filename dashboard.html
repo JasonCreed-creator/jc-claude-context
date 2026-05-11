@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<!--
+  M&C 신사업실 주간회의록 대시보드 — Standalone Single File
+  · 더블클릭만으로 브라우저에서 열림 (file://)
+  · 외부 자원: Pretendard 폰트 (CDN, 오프라인이어도 폴백 정상)
+  · 시트 ID를 STANDALONE_CONFIG.sheet.id에 입력하면 구글시트 30초 폴링
+  · 시트 미연결 시 STANDALONE_SAMPLE의 더미 회의록 3건으로 데모 동작
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M&amp;C 신사업실 주간회의록</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+:root {
+  --bg: #FFFFFF;
+  --bg-elev: #F9FAFB;
+  --bg-card: #F3F4F6;
+  --border: #E5E7EB;
+  --text: #0F1419;
+  --text-muted: #6B7280;
+  --accent: #1A56DB;
+  --accent-soft: #DBEAFE;
+  --success: #059669;
+  --warning: #D97706;
+  --danger: #DC2626;
+  --shadow: 0 1px 2px rgba(15, 20, 25, 0.04), 0 1px 3px rgba(15, 20, 25, 0.06);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --gap-1: 8px;
+  --gap-2: 16px;
+  --gap-3: 24px;
+  --gap-4: 32px;
+  --font:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0B0F19;
+  --bg-elev: #111827;
+  --bg-card: #1F2937;
+  --border: #374151;
+  --text: #E5E7EB;
+  --text-muted: #9CA3AF;
+  --accent: #60A5FA;
+  --accent-soft: #1E3A8A;
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.55;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-2);
+  padding: var(--gap-2) var(--gap-3);
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.topbar__left { display: flex; align-items: baseline; gap: var(--gap-2); flex-wrap: wrap; }
+.topbar__right { display: flex; align-items: center; gap: var(--gap-1); flex-wrap: wrap; }
+.brand { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; }
+.brand__mark { background: var(--accent); color: #FFFFFF; padding: 4px 8px; border-radius: 6px; font-size: 14px; letter-spacing: 0.5px; }
+.brand__title { font-weight: 700; }
+.brand__sub { color: var(--text-muted); font-size: 13px; transition: color 0.3s ease; }
+.brand__sub.is-pulse { color: var(--accent); animation: pulse 0.6s ease; }
+@keyframes pulse { 0% { opacity: 1; } 40% { opacity: 0.4; } 100% { opacity: 1; } }
+.control {
+  height: 36px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text);
+  font-family: var(--font); font-size: 14px;
+  outline: none; transition: border-color 0.15s ease;
+}
+.control:focus { border-color: var(--accent); }
+#search-input { min-width: 200px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; padding: 0 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; font-family: var(--font);
+  text-decoration: none; border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn--primary { background: var(--accent); color: #FFFFFF; }
+.btn--primary:hover { filter: brightness(1.08); }
+.btn--ghost { background: transparent; color: var(--text); border-color: var(--border); }
+.btn--ghost:hover { background: var(--bg-card); }
+.btn--icon { width: 36px; padding: 0; background: transparent; border-color: var(--border); font-size: 16px; }
+.btn--sm { height: 28px; padding: 0 10px; font-size: 12px; }
+.kpis {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-2); padding: var(--gap-3); background: var(--bg);
+}
+.kpi {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: var(--gap-2); display: flex; flex-direction: column; gap: 4px;
+  box-shadow: var(--shadow);
+}
+.kpi__label { color: var(--text-muted); font-size: 13px; font-weight: 500; }
+.kpi__value { font-size: 32px; font-weight: 700; line-height: 1.1; color: var(--text); }
+.kpi__unit { color: var(--text-muted); font-size: 12px; }
+.kpi__value-row { display: flex; align-items: baseline; gap: 4px; }
+.kpi--alert .kpi__value { color: var(--warning); }
+.kpi--with-bar .kpi__value-row .kpi__unit { font-size: 14px; font-weight: 600; }
+.progress {
+  width: 100%; height: 6px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 999px; overflow: hidden; margin-top: 4px;
+}
+.progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--success));
+  border-radius: 999px; transition: width 0.4s ease;
+}
+.filters { padding: 0 var(--gap-3) var(--gap-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--bg); color: var(--text);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip:hover { background: var(--bg-card); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.chip__count { color: var(--text-muted); font-size: 12px; }
+.chip[aria-pressed="true"] .chip__count { color: var(--accent); }
+.content {
+  flex: 1; display: grid; grid-template-columns: 380px 1fr;
+  gap: var(--gap-2); padding: 0 var(--gap-3) var(--gap-3);
+  min-height: 0;
+}
+.list-panel {
+  background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.list-panel__head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px var(--gap-2); border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text-muted);
+}
+.meeting-list { list-style: none; margin: 0; padding: 8px; overflow-y: auto; max-height: 70vh; }
+.meeting-item {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px; border-radius: var(--radius-sm);
+  cursor: pointer; border: 1px solid transparent; margin-bottom: 4px;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+.meeting-item:hover { background: var(--bg-card); }
+.meeting-item[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.meeting-item__row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.meeting-item__title { font-weight: 600; font-size: 14px; color: var(--text); }
+.meeting-item__date { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+.meeting-item__meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tag {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 999px; font-size: 11px; font-weight: 600;
+  background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border);
+}
+.tag--project { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.tag--author { background: transparent; }
+.tag--today { background: var(--success); color: #FFFFFF; border-color: transparent; }
+.tag--week { background: var(--warning); color: #FFFFFF; border-color: transparent; }
+.meeting-item--today { border-left: 3px solid var(--success); padding-left: 9px; }
+.meeting-item--this-week { border-left: 3px solid var(--warning); padding-left: 9px; }
+.empty { padding: var(--gap-3); text-align: center; color: var(--text-muted); font-size: 14px; }
+.detail-panel {
+  background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.detail-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; color: var(--text-muted); gap: var(--gap-2); padding: var(--gap-4); text-align: center;
+}
+.detail-empty__icon { font-size: 48px; opacity: 0.6; }
+.detail { padding: var(--gap-3); overflow-y: auto; max-height: 75vh; }
+.detail__head { margin-bottom: var(--gap-2); padding-bottom: var(--gap-2); border-bottom: 1px solid var(--border); }
+.detail__title { font-size: 22px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+.detail__meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--text-muted); font-size: 13px; }
+.detail__section { margin-top: var(--gap-3); }
+.detail__section h2 {
+  font-size: 14px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 var(--gap-1);
+}
+.detail__body { font-size: 15px; color: var(--text); }
+.detail__body h1, .detail__body h2, .detail__body h3 { margin: var(--gap-2) 0 8px; line-height: 1.3; color: var(--text); }
+.detail__body h1 { font-size: 20px; }
+.detail__body h2 { font-size: 17px; }
+.detail__body h3 { font-size: 15px; }
+.detail__body p { margin: 8px 0; }
+.detail__body ul, .detail__body ol { margin: 8px 0; padding-left: 24px; }
+.detail__body li { margin: 4px 0; }
+.detail__body code {
+  background: var(--bg-card); padding: 2px 6px; border-radius: 4px;
+  font-size: 0.9em; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.detail__body pre { background: var(--bg-card); padding: 12px; border-radius: var(--radius-sm); overflow-x: auto; }
+.detail__body blockquote {
+  margin: 8px 0; padding: 8px 12px;
+  border-left: 3px solid var(--accent); background: var(--bg-card); color: var(--text-muted);
+}
+.detail__body a { color: var(--accent); text-decoration: underline; }
+.detail__body strong { font-weight: 700; }
+.detail__body .task-list { list-style: none; padding-left: 0; }
+.detail__body .task-list li { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; }
+.detail__body .task-checkbox {
+  flex-shrink: 0; margin-top: 4px;
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--border); border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg);
+}
+.detail__body .task-checkbox--done {
+  background: var(--success); border-color: var(--success);
+  color: #FFFFFF; font-size: 11px; font-weight: 700;
+}
+.detail__body .task-checkbox--done + .task-text { color: var(--text-muted); text-decoration: line-through; }
+.footer {
+  padding: var(--gap-2) var(--gap-3);
+  display: flex; justify-content: space-between;
+  border-top: 1px solid var(--border); background: var(--bg-elev);
+  color: var(--text-muted); font-size: 12px;
+}
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; box-shadow: var(--shadow); z-index: 100;
+}
+.loading-overlay {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--gap-2); flex: 1; padding: var(--gap-4); color: var(--text-muted);
+}
+.loading-overlay[aria-hidden="true"] { display: none; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-banner {
+  display: flex; align-items: center; gap: var(--gap-1);
+  margin: 0 var(--gap-3) var(--gap-2);
+  padding: 10px 14px;
+  background: rgba(220, 38, 38, 0.08); border: 1px solid var(--danger);
+  border-radius: var(--radius-sm); color: var(--danger); font-size: 13px;
+}
+.error-banner__icon { font-size: 16px; }
+.error-banner__msg { flex: 1; }
+.detail-back { display: none; margin: var(--gap-1); align-self: flex-start; }
+@media (max-width: 960px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .content { grid-template-columns: 1fr; }
+  .detail-panel { display: none; }
+  .detail-panel.is-visible { display: flex; position: fixed; inset: 0; z-index: 50; border-radius: 0; }
+  .detail-panel.is-visible .detail-back { display: inline-flex; }
+  .list-panel.is-hidden { display: none; }
+  .topbar { padding: var(--gap-1) var(--gap-2); }
+  .topbar__right { width: 100%; }
+  #search-input { flex: 1; min-width: 0; }
+  .detail__title { font-size: 18px; }
+}
+@media (max-width: 480px) {
+  .kpis { grid-template-columns: 1fr 1fr; padding: var(--gap-2); }
+  .brand__sub { display: none; }
+}
+  </style>
+</head>
+<body data-theme="light">
+  <header class="topbar">
+    <div class="topbar__left">
+      <h1 class="brand">
+        <span class="brand__mark">M&amp;C</span>
+        <span class="brand__title">신사업실 주간회의록</span>
+      </h1>
+      <span class="brand__sub" id="last-updated">로딩 중…</span>
+    </div>
+    <div class="topbar__right">
+      <select id="week-select" class="control" aria-label="주차 선택">
+        <option value="all">전체 주차</option>
+      </select>
+      <input type="search" id="search-input" class="control" placeholder="키워드 검색…" aria-label="키워드 검색" />
+      <a id="form-link" class="btn btn--primary" href="#" target="_blank" rel="noopener">＋ 회의록 작성</a>
+      <a id="edit-link" class="btn btn--ghost" href="#" target="_blank" rel="noopener">시트 편집</a>
+      <button id="theme-toggle" class="btn btn--icon" aria-label="다크모드 토글">🌙</button>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="핵심 지표">
+    <div class="kpi"><div class="kpi__label">이번 주 회의</div><div class="kpi__value" id="kpi-meetings">–</div><div class="kpi__unit">건</div></div>
+    <div class="kpi"><div class="kpi__label">전체 액션</div><div class="kpi__value" id="kpi-actions">–</div><div class="kpi__unit">건</div></div>
+    <div class="kpi kpi--with-bar">
+      <div class="kpi__label">완료율</div>
+      <div class="kpi__value-row"><span class="kpi__value" id="kpi-completion">–</span><span class="kpi__unit">%</span></div>
+      <div class="progress" aria-hidden="true"><div class="progress__fill" id="kpi-completion-bar" style="width:0%"></div></div>
+    </div>
+    <div class="kpi kpi--alert"><div class="kpi__label">미해결 액션</div><div class="kpi__value" id="kpi-open">–</div><div class="kpi__unit">건</div></div>
+  </section>
+
+  <section class="filters" aria-label="프로젝트 필터">
+    <div class="chips" id="project-chips"></div>
+  </section>
+
+  <div id="loading-overlay" class="loading-overlay" aria-hidden="false">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>회의록 불러오는 중…</p>
+  </div>
+
+  <div id="error-banner" class="error-banner" hidden role="alert">
+    <span class="error-banner__icon">⚠️</span>
+    <span class="error-banner__msg" id="error-banner-msg"></span>
+    <button id="error-banner-retry" class="btn btn--ghost btn--sm">다시 시도</button>
+  </div>
+
+  <main class="content" id="content" hidden>
+    <aside class="list-panel" aria-label="회의록 목록">
+      <div class="list-panel__head">
+        <span id="list-count">0건</span>
+        <button id="refresh-btn" class="btn btn--ghost btn--sm" aria-label="새로고침">↻ 새로고침</button>
+      </div>
+      <ul class="meeting-list" id="meeting-list"></ul>
+      <div class="empty" id="empty-state" hidden>표시할 회의록이 없습니다.</div>
+    </aside>
+
+    <section class="detail-panel" id="detail-panel" aria-label="회의록 상세">
+      <button id="detail-back" class="btn btn--ghost btn--sm detail-back" aria-label="목록으로">← 목록</button>
+      <div class="detail-empty" id="detail-empty">
+        <div class="detail-empty__icon">📋</div>
+        <p>왼쪽에서 회의록을 선택하면 여기에 표시됩니다.</p>
+      </div>
+      <article class="detail" id="detail" hidden></article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>M&amp;C커뮤니케이션즈 · 신사업실</span>
+    <span id="data-source">데이터 소스: 샘플</span>
+  </footer>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script>
+/* ====== STANDALONE CONFIG ====== */
+/* 시트 ID·폼 URL을 여기에 입력하면 즉시 구글시트 연결됩니다. */
+window.STANDALONE_CONFIG = {
+  app: { title: 'M&C 신사업실 주간회의록', subtitle: 'Weekly Meeting Dashboard', polling_interval_ms: 30000 },
+  sheet: { id: '', gid: '0', sheet_name: '회의록' },
+  links: { form_url: '', edit_url: '' },
+  team: { company: 'M&C커뮤니케이션즈 신사업실', members: ['이진철','김정길','곽은지','김현','이지후'] },
+  projects: ['MiceConfigurator','리멤버','ConfEx','IUCR','기타'],
+  column_mapping: {
+    timestamp: '타임스탬프', meeting_date: '회의일자', week: '주차', title: '회의명',
+    project_tag: '프로젝트', author: '작성자', attendees: '참석자',
+    agenda_md: '안건', decisions_md: '결정사항', actions_md: '액션아이템',
+    next_meeting: '다음회의', note_md: '비고'
+  }
+};
+
+/* ====== STANDALONE SAMPLE DATA ====== */
+window.STANDALONE_SAMPLE = {
+  rows: [
+    {
+      timestamp: '2026-05-11 10:32:00', meeting_date: '2026-05-11', week: '2026-W20',
+      title: '신사업실 주간 정기회의', project_tag: '기타', author: '김정길',
+      attendees: '이진철, 김정길, 곽은지, 김현, 이지후',
+      agenda_md: '## 안건\n- 이번 주 프로젝트별 진척 공유\n- 5월 매출 파이프라인 점검\n- 리멤버 협업 일정 조율\n- ConfEx 박람회 수주 전략 논의',
+      decisions_md: '## 결정사항\n- **MiceConfigurator** v3.4 업그레이드 5/22까지 알파 완료\n- **Darktrace Korea** 모객 바텀라인 40명 → 5/30까지 60명으로 상향 추진\n- ConfEx 박람회 수주 TF 구성 (리드: 곽은지 대리)',
+      actions_md: '## 액션아이템\n- [x] 김정길: 5월 매출 파이프라인 시트 정리\n- [ ] 곽은지: ConfEx 박람회 운영사 리스트업 (5/15까지)\n- [ ] 김현: 리멤버 명함 DB 의사결정자 비율 분석 (5/16까지)\n- [ ] 이지후: Darktrace 모객 진행률 일일 보고\n- [x] 이진철: 주대웅 실장 협업 일정 confirm',
+      next_meeting: '2026-05-18', note_md: ''
+    },
+    {
+      timestamp: '2026-05-09 14:10:00', meeting_date: '2026-05-09', week: '2026-W19',
+      title: 'Darktrace Korea Discovery Meeting 사전 점검', project_tag: '리멤버', author: '이지후',
+      attendees: '이진철, 이지후, 주대웅(리멤버)',
+      agenda_md: '## 안건\n- 6월 본행사 모객 진행률 (현재 28/40)\n- 리멤버 DB 타겟팅 세그먼트 재검토\n- 행사장 베뉴 확정 일정',
+      decisions_md: '## 결정사항\n- 타겟 세그먼트: **보안 의사결정자(CISO·정보보안실장급)** 우선\n- 베뉴는 *그랜드 인터컨티넨탈* 5/20까지 확정\n- 모객 부족 시 5/25 추가 캠페인 발송',
+      actions_md: '## 액션아이템\n- [ ] 이지후: 리멤버 DB 추출 조건서 작성 (5/12)\n- [ ] 주대웅: 타겟 리스트 1차 추출 (5/14)\n- [x] 이진철: 베뉴 옵션 3개 비교표 송부\n- [ ] 이지후: 모객 대시보드 일일 업데이트',
+      next_meeting: '2026-05-16',
+      note_md: '리멤버 DB 의사결정자 비율 60% — 업계 평균 20% 대비 핵심 차별화 포인트.'
+    },
+    {
+      timestamp: '2026-05-08 16:45:00', meeting_date: '2026-05-08', week: '2026-W19',
+      title: 'MiceConfigurator v3.4 스프린트 킥오프', project_tag: 'MiceConfigurator', author: '곽은지',
+      attendees: '이진철, 곽은지, 김현',
+      agenda_md: '## 안건\n- v3.3 → v3.4 변경 범위 확정\n- 자동 가격 산출 엔진 우선순위 결정\n- LOGIC_SPEC_v1.0.md 갱신 필요 항목 확인',
+      decisions_md: '## 결정사항\n- **자동 가격 산출 엔진**을 v3.4 최우선 과제로 지정\n- PCO 수수료 모듈은 v3.5로 이관\n- Tier 구조는 현행 유지, PRESETS 9종 → 12종으로 확장',
+      actions_md: '## 액션아이템\n- [x] 곽은지: 스프린트 백로그 정리\n- [ ] 김현: 베뉴 DB 20개 → 30개 확장 리서치 (5/20)\n- [ ] 이진철: LOGIC_SPEC v1.1 초안 (5/18)\n- [ ] 곽은지: Lovable 빌드 환경 점검\n- [ ] 김현: PRESETS 추가 3종 가격 검증',
+      next_meeting: '2026-05-15',
+      note_md: 'Lovable + GitHub 연동 구조 유지. LOGIC_SPEC가 SSOT.'
+    }
+  ]
+};
+
+/* ====== MiniMarkdown ====== */
+(function (global) {
+  'use strict';
+  function escapeHtml(text) {
+    return String(text == null ? '' : text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function escapeAttr(url) {
+    var clean = String(url || '').trim();
+    if (!/^(https?:\/\/|mailto:|\/|#|\.\/|\.\.\/)/i.test(clean)) return '#';
+    return escapeHtml(clean);
+  }
+  function inline(text) {
+    return text
+      .replace(/`([^`]+?)`/g, '<code>$1</code>')
+      .replace(/\*\*([^\*]+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^\*])\*([^\*\n]+?)\*(?!\*)/g, '$1<em>$2</em>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (_, label, url) {
+        return '<a href="' + escapeAttr(url) + '" target="_blank" rel="noopener">' + label + '</a>';
+      });
+  }
+  function render(md) {
+    if (!md) return '';
+    var src = String(md).replace(/\r\n?/g, '\n');
+    var lines = src.split('\n');
+    var out = []; var i = 0;
+    function flushParagraph(buf) {
+      if (!buf.length) return;
+      var joined = buf.join(' ').trim();
+      if (joined) out.push('<p>' + inline(escapeHtml(joined)) + '</p>');
+      buf.length = 0;
+    }
+    var para = []; var listType = null; var listBuf = [];
+    function flushList() {
+      if (!listType) return;
+      if (listType === 'task') out.push('<ul class="task-list">' + listBuf.join('') + '</ul>');
+      else out.push('<' + listType + '>' + listBuf.join('') + '</' + listType + '>');
+      listType = null; listBuf = [];
+    }
+    while (i < lines.length) {
+      var line = lines[i];
+      if (/^```/.test(line)) {
+        flushParagraph(para); flushList();
+        var code = []; i++;
+        while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; }
+        out.push('<pre><code>' + escapeHtml(code.join('\n')) + '</code></pre>');
+        i++; continue;
+      }
+      if (/^\s*$/.test(line)) { flushParagraph(para); flushList(); i++; continue; }
+      var hMatch = line.match(/^(#{1,3})\s+(.*)$/);
+      if (hMatch) {
+        flushParagraph(para); flushList();
+        var level = hMatch[1].length;
+        out.push('<h' + level + '>' + inline(escapeHtml(hMatch[2].trim())) + '</h' + level + '>');
+        i++; continue;
+      }
+      if (/^>\s?/.test(line)) {
+        flushParagraph(para); flushList();
+        var quoteLines = [];
+        while (i < lines.length && /^>\s?/.test(lines[i])) { quoteLines.push(lines[i].replace(/^>\s?/, '')); i++; }
+        out.push('<blockquote>' + inline(escapeHtml(quoteLines.join(' '))) + '</blockquote>');
+        continue;
+      }
+      var taskMatch = line.match(/^\s*[-*]\s+\[([ xX])\]\s+(.*)$/);
+      if (taskMatch) {
+        flushParagraph(para);
+        if (listType && listType !== 'task') flushList();
+        listType = 'task';
+        var done = /[xX]/.test(taskMatch[1]);
+        var boxCls = done ? 'task-checkbox task-checkbox--done' : 'task-checkbox';
+        var boxContent = done ? '✓' : '';
+        listBuf.push(
+          '<li><span class="' + boxCls + '" aria-hidden="true">' + boxContent + '</span>' +
+          '<span class="task-text">' + inline(escapeHtml(taskMatch[2])) + '</span></li>'
+        );
+        i++; continue;
+      }
+      var ulMatch = line.match(/^\s*[-*]\s+(.*)$/);
+      if (ulMatch) {
+        flushParagraph(para);
+        if (listType && listType !== 'ul') flushList();
+        listType = 'ul';
+        listBuf.push('<li>' + inline(escapeHtml(ulMatch[1])) + '</li>');
+        i++; continue;
+      }
+      var olMatch = line.match(/^\s*\d+\.\s+(.*)$/);
+      if (olMatch) {
+        flushParagraph(para);
+        if (listType && listType !== 'ol') flushList();
+        listType = 'ol';
+        listBuf.push('<li>' + inline(escapeHtml(olMatch[1])) + '</li>');
+        i++; continue;
+      }
+      flushList(); para.push(line); i++;
+    }
+    flushParagraph(para); flushList();
+    return out.join('\n');
+  }
+  function countTasks(md) {
+    if (!md) return { total: 0, done: 0 };
+    var src = String(md);
+    var total = (src.match(/^\s*[-*]\s+\[[ xX]\]/gm) || []).length;
+    var done = (src.match(/^\s*[-*]\s+\[[xX]\]/gm) || []).length;
+    return { total: total, done: done };
+  }
+  global.MiniMarkdown = { render: render, countTasks: countTasks, escapeHtml: escapeHtml };
+})(window);
+
+/* ====== Filter ====== */
+(function (global) {
+  'use strict';
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function isoWeek(date) {
+    var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    var day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - day);
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return d.getUTCFullYear() + '-W' + pad2(weekNo);
+  }
+  function currentWeekISO(date) { return isoWeek(date || new Date()); }
+  function parseDate(str) {
+    if (!str) return null;
+    var gviz = String(str).match(/Date\((\d+),(\d+),(\d+)/);
+    if (gviz) return new Date(parseInt(gviz[1]), parseInt(gviz[2]), parseInt(gviz[3]));
+    var iso = String(str).replace(/[./]/g, '-');
+    var d = new Date(iso);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function rowWeek(row) {
+    if (row.week && /^\d{4}-W\d{1,2}/.test(row.week)) {
+      var m = row.week.match(/^(\d{4})-W(\d{1,2})/);
+      return m[1] + '-W' + pad2(parseInt(m[2]));
+    }
+    var d = parseDate(row.meeting_date);
+    return d ? isoWeek(d) : '';
+  }
+  function collectWeeks(rows) {
+    var set = {};
+    rows.forEach(function (r) { var w = rowWeek(r); if (w) set[w] = true; });
+    return Object.keys(set).sort().reverse();
+  }
+  function matchesKeyword(row, keyword) {
+    if (!keyword) return true;
+    var hay = [row.title, row.author, row.attendees, row.project_tag,
+      row.agenda_md, row.decisions_md, row.actions_md, row.note_md].join(' ').toLowerCase();
+    return hay.indexOf(keyword.toLowerCase()) !== -1;
+  }
+  function apply(rows, state) {
+    state = state || {};
+    var out = rows.slice();
+    if (state.week && state.week !== 'all') out = out.filter(function (r) { return rowWeek(r) === state.week; });
+    if (state.project && state.project !== 'all') out = out.filter(function (r) { return (r.project_tag || '기타') === state.project; });
+    if (state.keyword) out = out.filter(function (r) { return matchesKeyword(r, state.keyword); });
+    out.sort(function (a, b) {
+      var da = parseDate(a.meeting_date) || parseDate(a.timestamp) || new Date(0);
+      var db = parseDate(b.meeting_date) || parseDate(b.timestamp) || new Date(0);
+      return db - da;
+    });
+    return out;
+  }
+  global.MeetingFilter = { apply: apply, collectWeeks: collectWeeks, currentWeekISO: currentWeekISO, rowWeek: rowWeek, parseDate: parseDate };
+})(window);
+
+/* ====== SheetSource (standalone variant — inline objects, no fetch for config/sample) ====== */
+(function (global) {
+  'use strict';
+  function loadConfig() { return Promise.resolve(global.STANDALONE_CONFIG); }
+  function parseGvizResponse(text) {
+    var first = text.indexOf('{');
+    var last = text.lastIndexOf('}');
+    if (first === -1 || last === -1) throw new Error('gviz 응답 형식 오류');
+    return JSON.parse(text.slice(first, last + 1));
+  }
+  function normalizeGvizTable(table, columnMapping) {
+    var labels = (table.cols || []).map(function (c) { return (c.label || c.id || '').trim(); });
+    var reverse = {};
+    Object.keys(columnMapping || {}).forEach(function (stdKey) { reverse[columnMapping[stdKey]] = stdKey; });
+    var idx = {};
+    labels.forEach(function (label, i) { var stdKey = reverse[label]; if (stdKey) idx[stdKey] = i; });
+    return (table.rows || []).map(function (row) {
+      var cells = row.c || [];
+      function cellAt(stdKey) {
+        if (idx[stdKey] == null) return '';
+        var cell = cells[idx[stdKey]];
+        if (!cell) return '';
+        if (cell.f != null && cell.f !== '') return String(cell.f);
+        if (cell.v == null) return '';
+        return String(cell.v);
+      }
+      return {
+        timestamp: cellAt('timestamp'), meeting_date: cellAt('meeting_date'),
+        week: cellAt('week'), title: cellAt('title'),
+        project_tag: cellAt('project_tag'), author: cellAt('author'),
+        attendees: cellAt('attendees'), agenda_md: cellAt('agenda_md'),
+        decisions_md: cellAt('decisions_md'), actions_md: cellAt('actions_md'),
+        next_meeting: cellAt('next_meeting'), note_md: cellAt('note_md')
+      };
+    });
+  }
+  function buildGvizUrl(sheetId, gid, sheetName) {
+    var base = 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(sheetId) + '/gviz/tq';
+    var params = 'tqx=out:json';
+    if (sheetName) params += '&sheet=' + encodeURIComponent(sheetName);
+    else if (gid) params += '&gid=' + encodeURIComponent(gid);
+    params += '&_=' + Date.now();
+    return base + '?' + params;
+  }
+  function fetchFromSheet(config) {
+    var url = buildGvizUrl(config.sheet.id, config.sheet.gid, config.sheet.sheet_name);
+    return fetch(url, { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('시트 응답 오류 (' + r.status + ')'); return r.text(); })
+      .then(function (text) {
+        var parsed = parseGvizResponse(text);
+        if (parsed.status === 'error') {
+          var errMsg = (parsed.errors && parsed.errors[0] && parsed.errors[0].detailed_message) || '시트 오류';
+          throw new Error(errMsg);
+        }
+        return { source: 'sheet', rows: normalizeGvizTable(parsed.table || {}, config.column_mapping) };
+      });
+  }
+  function fetchFromSample() {
+    return Promise.resolve({ source: 'sample', rows: (global.STANDALONE_SAMPLE && global.STANDALONE_SAMPLE.rows) || [] });
+  }
+  function fetchRows(config) {
+    if (config && config.sheet && config.sheet.id) {
+      return fetchFromSheet(config).catch(function (err) {
+        console.warn('[Sheet] fetch 실패, 샘플로 폴백:', err.message);
+        return fetchFromSample().then(function (result) {
+          result.source = 'sample-fallback'; result.error = err.message; return result;
+        });
+      });
+    }
+    return fetchFromSample();
+  }
+  function startPolling(config, onUpdate, onError) {
+    var interval = (config.app && config.app.polling_interval_ms) || 30000;
+    var stopped = false; var timer = null;
+    function tick() {
+      if (stopped) return;
+      fetchRows(config)
+        .then(function (result) { if (!stopped) onUpdate(result); })
+        .catch(function (err) { if (!stopped && onError) onError(err); })
+        .finally(function () { if (!stopped) timer = setTimeout(tick, interval); });
+    }
+    tick();
+    return function stop() { stopped = true; if (timer) clearTimeout(timer); };
+  }
+  global.SheetSource = { loadConfig: loadConfig, fetchRows: fetchRows, startPolling: startPolling };
+})(window);
+
+/* ====== Render ====== */
+(function (global) {
+  'use strict';
+  var MD = global.MiniMarkdown;
+  var FILTER = global.MeetingFilter;
+  function el(id) { return document.getElementById(id); }
+  function rowKey(row) { return (row.meeting_date || '') + '|' + (row.title || '') + '|' + (row.author || ''); }
+  function formatDate(str) {
+    var d = FILTER.parseDate(str);
+    if (!d) return str || '';
+    var y = d.getFullYear(); var m = d.getMonth() + 1; var dd = d.getDate();
+    var w = ['일','월','화','수','목','금','토'][d.getDay()];
+    return y + '. ' + m + '. ' + dd + '. (' + w + ')';
+  }
+  function kpis(rows, currentWeek) {
+    var weekRows = rows.filter(function (r) { return FILTER.rowWeek(r) === currentWeek; });
+    var totals = { total: 0, done: 0 };
+    rows.forEach(function (r) { var c = MD.countTasks(r.actions_md); totals.total += c.total; totals.done += c.done; });
+    var open = totals.total - totals.done;
+    var rate = totals.total === 0 ? 0 : Math.round((totals.done / totals.total) * 100);
+    el('kpi-meetings').textContent = weekRows.length;
+    el('kpi-actions').textContent = totals.total;
+    el('kpi-completion').textContent = rate;
+    el('kpi-open').textContent = open;
+    var bar = el('kpi-completion-bar');
+    if (bar) bar.style.width = rate + '%';
+  }
+  function dayDiff(a, b) {
+    var ms = 24 * 60 * 60 * 1000;
+    var da = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+    var db = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((da - db) / ms);
+  }
+  function recencyClass(row) {
+    var d = FILTER.parseDate(row.meeting_date);
+    if (!d) return { cls: '', tag: '' };
+    var diff = dayDiff(d, new Date());
+    if (diff === 0) return { cls: 'meeting-item--today', tag: '오늘' };
+    if (FILTER.rowWeek(row) === FILTER.currentWeekISO()) return { cls: 'meeting-item--this-week', tag: '이번주' };
+    return { cls: '', tag: '' };
+  }
+  function projectChips(config, rows, currentProject, onPick) {
+    var container = el('project-chips');
+    var counts = { all: rows.length };
+    (config.projects || []).forEach(function (p) { counts[p] = 0; });
+    rows.forEach(function (r) { var p = r.project_tag || '기타'; counts[p] = (counts[p] || 0) + 1; });
+    var entries = [['all','전체']].concat((config.projects || []).map(function (p) { return [p, p]; }));
+    container.innerHTML = '';
+    entries.forEach(function (e) {
+      var key = e[0]; var label = e[1];
+      var btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.setAttribute('aria-pressed', String(key === currentProject));
+      btn.dataset.project = key;
+      btn.innerHTML = MD.escapeHtml(label) + ' <span class="chip__count">' + (counts[key] || 0) + '</span>';
+      btn.addEventListener('click', function () { onPick(key); });
+      container.appendChild(btn);
+    });
+  }
+  function list(rows, selectedKey, onSelect) {
+    var listEl = el('meeting-list');
+    var empty = el('empty-state');
+    var count = el('list-count');
+    listEl.innerHTML = '';
+    count.textContent = rows.length + '건';
+    if (rows.length === 0) { empty.hidden = false; return; }
+    empty.hidden = true;
+    rows.forEach(function (row) {
+      var li = document.createElement('li');
+      var key = rowKey(row);
+      var recency = recencyClass(row);
+      li.className = 'meeting-item' + (recency.cls ? ' ' + recency.cls : '');
+      li.setAttribute('aria-selected', String(key === selectedKey));
+      li.dataset.key = key;
+      var tasks = MD.countTasks(row.actions_md);
+      var taskBadge = tasks.total > 0 ? '<span class="tag">액션 ' + tasks.done + '/' + tasks.total + '</span>' : '';
+      var recencyBadge = recency.tag
+        ? '<span class="tag ' + (recency.tag === '오늘' ? 'tag--today' : 'tag--week') + '">' + recency.tag + '</span>' : '';
+      li.innerHTML =
+        '<div class="meeting-item__row">' +
+          '<span class="meeting-item__title">' + MD.escapeHtml(row.title || '(제목없음)') + '</span>' +
+          '<span class="meeting-item__date">' + MD.escapeHtml(row.meeting_date || '') + '</span>' +
+        '</div>' +
+        '<div class="meeting-item__meta">' +
+          recencyBadge +
+          '<span class="tag tag--project">' + MD.escapeHtml(row.project_tag || '기타') + '</span>' +
+          '<span class="tag tag--author">' + MD.escapeHtml(row.author || '') + '</span>' +
+          taskBadge +
+        '</div>';
+      li.addEventListener('click', function () { onSelect(row); });
+      listEl.appendChild(li);
+    });
+  }
+  function section(label, mdBody) {
+    if (!mdBody || !mdBody.trim()) return '';
+    return '<div class="detail__section"><h2>' + MD.escapeHtml(label) + '</h2><div class="detail__body">' + MD.render(mdBody) + '</div></div>';
+  }
+  function detail(row) {
+    var panel = el('detail');
+    var emptyState = el('detail-empty');
+    if (!row) { panel.hidden = true; panel.innerHTML = ''; emptyState.style.display = ''; return; }
+    emptyState.style.display = 'none';
+    panel.hidden = false;
+    var tasks = MD.countTasks(row.actions_md);
+    var rate = tasks.total === 0 ? 0 : Math.round((tasks.done / tasks.total) * 100);
+    panel.innerHTML =
+      '<header class="detail__head">' +
+        '<h1 class="detail__title">' + MD.escapeHtml(row.title || '(제목없음)') + '</h1>' +
+        '<div class="detail__meta">' +
+          '<span>📅 ' + MD.escapeHtml(formatDate(row.meeting_date)) + '</span>' +
+          '<span>🗂 ' + MD.escapeHtml(row.project_tag || '기타') + '</span>' +
+          '<span>✍️ ' + MD.escapeHtml(row.author || '') + '</span>' +
+          '<span>👥 ' + MD.escapeHtml(row.attendees || '') + '</span>' +
+          (tasks.total > 0 ? '<span>✅ ' + tasks.done + '/' + tasks.total + ' (' + rate + '%)</span>' : '') +
+        '</div>' +
+      '</header>' +
+      section('안건', row.agenda_md) +
+      section('결정사항', row.decisions_md) +
+      section('액션아이템', row.actions_md) +
+      (row.next_meeting ? section('다음 회의', '다음 회의: ' + row.next_meeting) : '') +
+      section('비고', row.note_md);
+  }
+  global.MeetingRender = { kpis: kpis, list: list, detail: detail, projectChips: projectChips, rowKey: rowKey };
+})(window);
+
+/* ====== App Controller ====== */
+(function (global) {
+  'use strict';
+  var STORAGE_KEY_THEME = 'jc-meeting-dashboard:theme';
+  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', keyword: '' }, selectedKey: null, stopPolling: null };
+  function $(id) { return document.getElementById(id); }
+  function toast(message, durationMs) {
+    var t = $('toast');
+    t.textContent = message; t.hidden = false;
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function () { t.hidden = true; }, durationMs || 2500);
+  }
+  function applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    var btn = $('theme-toggle');
+    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    btn.setAttribute('aria-label', theme === 'dark' ? '라이트모드 토글' : '다크모드 토글');
+  }
+  function loadTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem(STORAGE_KEY_THEME); } catch (e) {}
+    if (saved === 'dark' || saved === 'light') return saved;
+    var prefersDark = global.matchMedia && global.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+  }
+  function saveTheme(theme) { try { localStorage.setItem(STORAGE_KEY_THEME, theme); } catch (e) {} }
+  function renderAll() {
+    var rows = state.rows;
+    var filtered = MeetingFilter.apply(rows, state.filter);
+    var currentWeek = state.filter.week === 'all' ? MeetingFilter.currentWeekISO() : state.filter.week;
+    MeetingRender.kpis(rows, currentWeek);
+    MeetingRender.projectChips(state.config, rows, state.filter.project, function (project) {
+      state.filter.project = project; renderAll();
+    });
+    MeetingRender.list(filtered, state.selectedKey, function (row) {
+      state.selectedKey = MeetingRender.rowKey(row);
+      MeetingRender.detail(row);
+      if (global.innerWidth <= 960) {
+        document.querySelector('.list-panel').classList.add('is-hidden');
+        document.querySelector('.detail-panel').classList.add('is-visible');
+      }
+      renderListSelection();
+    });
+    var selectedRow = filtered.find(function (r) { return MeetingRender.rowKey(r) === state.selectedKey; });
+    if (selectedRow) MeetingRender.detail(selectedRow);
+    else if (!state.selectedKey && filtered.length > 0 && global.innerWidth > 960) {
+      state.selectedKey = MeetingRender.rowKey(filtered[0]);
+      MeetingRender.detail(filtered[0]);
+      renderListSelection();
+    }
+  }
+  function renderListSelection() {
+    var items = document.querySelectorAll('.meeting-item');
+    items.forEach(function (it) { it.setAttribute('aria-selected', String(it.dataset.key === state.selectedKey)); });
+  }
+  function populateWeekSelect() {
+    var sel = $('week-select');
+    var weeks = MeetingFilter.collectWeeks(state.rows);
+    var current = state.filter.week;
+    sel.innerHTML = '<option value="all">전체 주차</option>' +
+      weeks.map(function (w) { return '<option value="' + w + '">' + w + '</option>'; }).join('');
+    sel.value = current;
+  }
+  function updateLastUpdated(source, errorMsg) {
+    var label = $('last-updated');
+    var src = $('data-source');
+    var now = new Date();
+    var hh = ('0' + now.getHours()).slice(-2);
+    var mm = ('0' + now.getMinutes()).slice(-2);
+    label.textContent = '마지막 갱신 ' + hh + ':' + mm;
+    label.classList.remove('is-pulse');
+    void label.offsetWidth;
+    label.classList.add('is-pulse');
+    var srcLabel = { 'sheet': '구글시트', 'sample': '샘플 데이터', 'sample-fallback': '샘플(시트 연결 실패)' }[source] || source;
+    src.textContent = '데이터 소스: ' + srcLabel + (errorMsg ? ' · ' + errorMsg : '');
+  }
+  function hideLoading() {
+    var overlay = $('loading-overlay');
+    overlay.setAttribute('aria-hidden', 'true');
+    $('content').hidden = false;
+  }
+  function showError(message) { $('error-banner').hidden = false; $('error-banner-msg').textContent = message; }
+  function hideError() { $('error-banner').hidden = true; }
+  function onDataUpdate(result) {
+    state.rows = result.rows || [];
+    populateWeekSelect();
+    renderAll();
+    updateLastUpdated(result.source, result.error);
+    hideLoading();
+    hideError();
+    if (result.source === 'sample-fallback') toast('시트 연결 실패 — 샘플 데이터로 표시 중', 3500);
+  }
+  function onDataError(err) { console.error('[App] 데이터 로드 오류:', err); hideLoading(); showError('데이터 로드 오류: ' + err.message); }
+  function bindEvents() {
+    $('theme-toggle').addEventListener('click', function () {
+      var next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next); saveTheme(next);
+    });
+    $('week-select').addEventListener('change', function (e) {
+      state.filter.week = e.target.value; state.selectedKey = null; renderAll();
+    });
+    var searchTimer = null;
+    $('search-input').addEventListener('input', function (e) {
+      var v = e.target.value;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function () { state.filter.keyword = v; state.selectedKey = null; renderAll(); }, 180);
+    });
+    $('refresh-btn').addEventListener('click', function () {
+      if (!state.config) return;
+      SheetSource.fetchRows(state.config).then(onDataUpdate).catch(onDataError);
+      toast('새로고침 중…', 1500);
+    });
+    $('error-banner-retry').addEventListener('click', function () {
+      if (!state.config) return;
+      hideError();
+      SheetSource.fetchRows(state.config).then(onDataUpdate).catch(onDataError);
+    });
+    function closeDetailOnMobile() {
+      document.querySelector('.list-panel').classList.remove('is-hidden');
+      document.querySelector('.detail-panel').classList.remove('is-visible');
+    }
+    $('detail-back').addEventListener('click', closeDetailOnMobile);
+    document.querySelector('.detail-panel').addEventListener('click', function (e) {
+      if (global.innerWidth > 960) return;
+      if (e.target.id === 'detail-empty' || e.target.classList.contains('detail-empty')) closeDetailOnMobile();
+    });
+  }
+  function applyConfigLinks(config) {
+    var form = $('form-link');
+    var edit = $('edit-link');
+    if (config.links && config.links.form_url) form.href = config.links.form_url;
+    else { form.classList.add('btn--ghost'); form.classList.remove('btn--primary'); form.title = 'STANDALONE_CONFIG.links.form_url을 설정하세요'; }
+    if (config.links && config.links.edit_url) edit.href = config.links.edit_url;
+    else if (config.sheet && config.sheet.id) edit.href = 'https://docs.google.com/spreadsheets/d/' + config.sheet.id + '/edit';
+    else edit.title = 'STANDALONE_CONFIG.links.edit_url 또는 sheet.id를 설정하세요';
+  }
+  function init() {
+    applyTheme(loadTheme());
+    bindEvents();
+    SheetSource.loadConfig().then(function (config) {
+      state.config = config;
+      document.title = config.app.title || document.title;
+      applyConfigLinks(config);
+      state.stopPolling = SheetSource.startPolling(config, onDataUpdate, onDataError);
+    }).catch(function (err) {
+      console.error('[App] config 로드 실패:', err);
+      hideLoading();
+      showError('config 로드 실패: ' + err.message);
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})(window);
+  </script>
+</body>
+</html>

@@ -31,7 +31,11 @@
   <section class="kpis" id="kpis" aria-label="핵심 지표">
     <div class="kpi"><div class="kpi__label">이번 주 회의</div><div class="kpi__value" id="kpi-meetings">–</div><div class="kpi__unit">건</div></div>
     <div class="kpi"><div class="kpi__label">전체 액션</div><div class="kpi__value" id="kpi-actions">–</div><div class="kpi__unit">건</div></div>
-    <div class="kpi"><div class="kpi__label">완료율</div><div class="kpi__value" id="kpi-completion">–</div><div class="kpi__unit">%</div></div>
+    <div class="kpi kpi--with-bar">
+      <div class="kpi__label">완료율</div>
+      <div class="kpi__value-row"><span class="kpi__value" id="kpi-completion">–</span><span class="kpi__unit">%</span></div>
+      <div class="progress" aria-hidden="true"><div class="progress__fill" id="kpi-completion-bar" style="width:0%"></div></div>
+    </div>
     <div class="kpi kpi--alert"><div class="kpi__label">미해결 액션</div><div class="kpi__value" id="kpi-open">–</div><div class="kpi__unit">건</div></div>
   </section>
 
@@ -39,7 +43,18 @@
     <div class="chips" id="project-chips"></div>
   </section>
 
-  <main class="content">
+  <div id="loading-overlay" class="loading-overlay" aria-hidden="false">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>회의록 불러오는 중…</p>
+  </div>
+
+  <div id="error-banner" class="error-banner" hidden role="alert">
+    <span class="error-banner__icon">⚠️</span>
+    <span class="error-banner__msg" id="error-banner-msg"></span>
+    <button id="error-banner-retry" class="btn btn--ghost btn--sm">다시 시도</button>
+  </div>
+
+  <main class="content" id="content" hidden>
     <aside class="list-panel" aria-label="회의록 목록">
       <div class="list-panel__head">
         <span id="list-count">0건</span>
@@ -50,6 +65,7 @@
     </aside>
 
     <section class="detail-panel" id="detail-panel" aria-label="회의록 상세">
+      <button id="detail-back" class="btn btn--ghost btn--sm detail-back" aria-label="목록으로">← 목록</button>
       <div class="detail-empty" id="detail-empty">
         <div class="detail-empty__icon">📋</div>
         <p>왼쪽에서 회의록을 선택하면 여기에 표시됩니다.</p>

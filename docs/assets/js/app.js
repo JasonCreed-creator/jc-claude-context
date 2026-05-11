@@ -97,6 +97,9 @@
     var hh = ('0' + now.getHours()).slice(-2);
     var mm = ('0' + now.getMinutes()).slice(-2);
     label.textContent = '마지막 갱신 ' + hh + ':' + mm;
+    label.classList.remove('is-pulse');
+    void label.offsetWidth; // force reflow to restart animation
+    label.classList.add('is-pulse');
 
     var srcLabel = {
       'sheet': '구글시트',
@@ -106,11 +109,28 @@
     src.textContent = '데이터 소스: ' + srcLabel + (errorMsg ? ' · ' + errorMsg : '');
   }
 
+  function hideLoading() {
+    var overlay = $('loading-overlay');
+    overlay.setAttribute('aria-hidden', 'true');
+    $('content').hidden = false;
+  }
+
+  function showError(message) {
+    $('error-banner').hidden = false;
+    $('error-banner-msg').textContent = message;
+  }
+
+  function hideError() {
+    $('error-banner').hidden = true;
+  }
+
   function onDataUpdate(result) {
     state.rows = result.rows || [];
     populateWeekSelect();
     renderAll();
     updateLastUpdated(result.source, result.error);
+    hideLoading();
+    hideError();
     if (result.source === 'sample-fallback') {
       toast('시트 연결 실패 — 샘플 데이터로 표시 중', 3500);
     }
@@ -118,7 +138,8 @@
 
   function onDataError(err) {
     console.error('[App] 데이터 로드 오류:', err);
-    toast('데이터 로드 오류: ' + err.message, 4000);
+    hideLoading();
+    showError('데이터 로드 오류: ' + err.message);
   }
 
   function bindEvents() {
@@ -151,12 +172,22 @@
       toast('새로고침 중…', 1500);
     });
 
-    // 모바일: 상세 → 리스트 복귀 (좌측 스와이프 대용 — 상세 외부 클릭)
+    $('error-banner-retry').addEventListener('click', function () {
+      if (!state.config) return;
+      hideError();
+      SheetSource.fetchRows(state.config).then(onDataUpdate).catch(onDataError);
+    });
+
+    // 모바일: 상세 → 리스트 복귀
+    function closeDetailOnMobile() {
+      document.querySelector('.list-panel').classList.remove('is-hidden');
+      document.querySelector('.detail-panel').classList.remove('is-visible');
+    }
+    $('detail-back').addEventListener('click', closeDetailOnMobile);
     document.querySelector('.detail-panel').addEventListener('click', function (e) {
       if (global.innerWidth > 960) return;
       if (e.target.id === 'detail-empty' || e.target.classList.contains('detail-empty')) {
-        document.querySelector('.list-panel').classList.remove('is-hidden');
-        document.querySelector('.detail-panel').classList.remove('is-visible');
+        closeDetailOnMobile();
       }
     });
   }
@@ -193,7 +224,8 @@
       })
       .catch(function (err) {
         console.error('[App] config 로드 실패:', err);
-        toast('config.json 로드 실패 — 콘솔을 확인하세요', 5000);
+        hideLoading();
+        showError('config.json 로드 실패: ' + err.message);
       });
   }
 

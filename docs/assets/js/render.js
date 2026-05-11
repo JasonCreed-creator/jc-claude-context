@@ -45,6 +45,26 @@
     el('kpi-actions').textContent = totals.total;
     el('kpi-completion').textContent = rate;
     el('kpi-open').textContent = open;
+    var bar = el('kpi-completion-bar');
+    if (bar) bar.style.width = rate + '%';
+  }
+
+  function dayDiff(a, b) {
+    var ms = 24 * 60 * 60 * 1000;
+    var da = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+    var db = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((da - db) / ms);
+  }
+
+  function recencyClass(row) {
+    var d = FILTER.parseDate(row.meeting_date);
+    if (!d) return { cls: '', tag: '' };
+    var diff = dayDiff(d, new Date());
+    if (diff === 0) return { cls: 'meeting-item--today', tag: '오늘' };
+    if (FILTER.rowWeek(row) === FILTER.currentWeekISO()) {
+      return { cls: 'meeting-item--this-week', tag: '이번주' };
+    }
+    return { cls: '', tag: '' };
   }
 
   function projectChips(config, rows, currentProject, onPick) {
@@ -89,13 +109,17 @@
     rows.forEach(function (row) {
       var li = document.createElement('li');
       var key = rowKey(row);
-      li.className = 'meeting-item';
+      var recency = recencyClass(row);
+      li.className = 'meeting-item' + (recency.cls ? ' ' + recency.cls : '');
       li.setAttribute('aria-selected', String(key === selectedKey));
       li.dataset.key = key;
 
       var tasks = MD.countTasks(row.actions_md);
       var taskBadge = tasks.total > 0
         ? '<span class="tag">액션 ' + tasks.done + '/' + tasks.total + '</span>'
+        : '';
+      var recencyBadge = recency.tag
+        ? '<span class="tag ' + (recency.tag === '오늘' ? 'tag--today' : 'tag--week') + '">' + recency.tag + '</span>'
         : '';
 
       li.innerHTML =
@@ -104,6 +128,7 @@
           '<span class="meeting-item__date">' + MD.escapeHtml(row.meeting_date || '') + '</span>' +
         '</div>' +
         '<div class="meeting-item__meta">' +
+          recencyBadge +
           '<span class="tag tag--project">' + MD.escapeHtml(row.project_tag || '기타') + '</span>' +
           '<span class="tag tag--author">' + MD.escapeHtml(row.author || '') + '</span>' +
           taskBadge +

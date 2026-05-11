@@ -131,8 +131,18 @@ body {
   background: linear-gradient(90deg, var(--accent), var(--success));
   border-radius: 999px; transition: width 0.4s ease;
 }
-.filters { padding: 0 var(--gap-3) var(--gap-2); }
+.filters { padding: 0 var(--gap-3) var(--gap-2); display: flex; flex-direction: column; gap: 6px; }
+.filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filter-row__label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; min-width: 54px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag--department { background: var(--success); color: #FFFFFF; border-color: transparent; }
+.meeting-group {
+  padding: 8px 12px; margin: 12px 4px 4px;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  border-top: 1px solid var(--border);
+}
+.meeting-group:first-child { margin-top: 0; border-top: none; }
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
   height: 30px; padding: 0 12px;
@@ -366,8 +376,9 @@ body {
     <div class="kpi kpi--alert"><div class="kpi__label">미해결 액션</div><div class="kpi__value" id="kpi-open">–</div><div class="kpi__unit">건</div></div>
   </section>
 
-  <section class="filters" aria-label="프로젝트 필터">
-    <div class="chips" id="project-chips"></div>
+  <section class="filters" aria-label="필터">
+    <div class="filter-row"><span class="filter-row__label">부서</span><div class="chips" id="department-chips"></div></div>
+    <div class="filter-row"><span class="filter-row__label">프로젝트</span><div class="chips" id="project-chips"></div></div>
   </section>
 
   <div id="loading-overlay" class="loading-overlay" aria-hidden="false">
@@ -434,13 +445,17 @@ body {
           </div>
           <div class="field__row">
             <div class="field">
+              <label class="field__label" for="f-department">부서</label>
+              <select id="f-department"></select>
+            </div>
+            <div class="field">
               <label class="field__label" for="f-project_tag">프로젝트</label>
               <select id="f-project_tag"></select>
             </div>
-            <div class="field">
-              <label class="field__label" for="f-author">작성자</label>
-              <select id="f-author"></select>
-            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="f-author">작성자</label>
+            <select id="f-author"></select>
           </div>
           <div class="field">
             <label class="field__label" for="f-attendees">참석자</label>
@@ -478,14 +493,24 @@ body {
 /* ====== STANDALONE CONFIG ====== */
 /* 시트 ID·폼 URL을 여기에 입력하면 즉시 구글시트 연결됩니다. */
 window.STANDALONE_CONFIG = {
-  app: { title: 'M&C 신사업실 주간회의록', subtitle: 'Weekly Meeting Dashboard', polling_interval_ms: 30000 },
+  app: { title: 'M&C 주간회의록', subtitle: 'Weekly Meeting Dashboard', polling_interval_ms: 30000 },
   sheet: { id: '', gid: '0', sheet_name: '회의록' },
   links: { form_url: '', edit_url: '' },
-  team: { company: 'M&C커뮤니케이션즈 신사업실', members: ['이진철','김정길','곽은지','김현','이지후'] },
-  projects: ['MiceConfigurator','리멤버','ConfEx','IUCR','기타'],
+  team: { company: 'M&C커뮤니케이션즈', members: ['이진철','김정길','곽은지','김현','이지후'] },
+  projects: ['MiceConfigurator','리멤버','ConfEx','IUCR','번역원','KTO','옥타브','투비소프트','센트릭','RMB','기타'],
+  departments: ['신사업실','콘텐츠기획팀','경영지원팀','매뉴얼팀','전체'],
+  /* 사내 시스템 연동 슬롯 — 비워두면 비활성. 실제 연결 시 URL/Token/Adapter 지정. */
+  internal_system: {
+    enabled: false,
+    name: '',                    /* 표시명, 예: "엠앤씨 TMS" */
+    api_url: '',                 /* 프로젝트 진행현황 fetch URL */
+    auth_header: '',             /* 'Authorization: Bearer ...' 등 (CORS 정책 확인 필요) */
+    adapter: 'generic_json',     /* generic_json | tms | erp 등 (확장 슬롯) */
+    polling_interval_ms: 60000
+  },
   column_mapping: {
     timestamp: '타임스탬프', meeting_date: '회의일자', week: '주차', title: '회의명',
-    project_tag: '프로젝트', author: '작성자', attendees: '참석자',
+    project_tag: '프로젝트', department: '부서', author: '작성자', attendees: '참석자',
     agenda_md: '안건', decisions_md: '결정사항', actions_md: '액션아이템',
     next_meeting: '다음회의', note_md: '비고'
   }
@@ -496,7 +521,7 @@ window.STANDALONE_SAMPLE = {
   rows: [
     {
       timestamp: '2026-05-11 10:32:00', meeting_date: '2026-05-11', week: '2026-W20',
-      title: '신사업실 주간 정기회의', project_tag: '기타', author: '김정길',
+      title: '주간회의 — 신사업실 파트', project_tag: '기타', department: '신사업실', author: '김정길',
       attendees: '이진철, 김정길, 곽은지, 김현, 이지후',
       agenda_md: '## 안건\n- 이번 주 프로젝트별 진척 공유\n- 5월 매출 파이프라인 점검\n- 리멤버 협업 일정 조율\n- ConfEx 박람회 수주 전략 논의',
       decisions_md: '## 결정사항\n- **MiceConfigurator** v3.4 업그레이드 5/22까지 알파 완료\n- **Darktrace Korea** 모객 바텀라인 40명 → 5/30까지 60명으로 상향 추진\n- ConfEx 박람회 수주 TF 구성 (리드: 곽은지 대리)',
@@ -504,8 +529,26 @@ window.STANDALONE_SAMPLE = {
       next_meeting: '2026-05-18', note_md: ''
     },
     {
+      timestamp: '2026-05-11 10:32:00', meeting_date: '2026-05-11', week: '2026-W20',
+      title: '주간회의 — 콘텐츠기획팀 파트', project_tag: '기타', department: '콘텐츠기획팀', author: '곽은지',
+      attendees: '이진철, 곽은지, 김현',
+      agenda_md: '## 진행 프로젝트 (콘텐츠)\n- 번역원 30주년 기념식: 제작물 발주(책갈피 확인 중)\n- 번역원 글로벌 문학포럼: 키비주얼 회신 대기\n- KTO 비즈데이: 키비주얼 확정, 제작물 작업 중\n- 옥타브: 5/20 랜딩 초안, 5/15 키비주얼 시안 2종',
+      decisions_md: '## 결정사항\n- 5/29 15:00 호텔나루 답사 확정 (갤러리/나루볼룸)\n- 키비주얼 아카이빙 페이지 정리 방침 합의',
+      actions_md: '## 액션아이템\n- [ ] 곽은지: 5/12 회사소개서 중철제본 발주\n- [ ] 곽은지: 5/15 옥타브 키비주얼 시안 2종\n- [ ] 곽은지: 5/20 옥타브 랜딩 초안\n- [ ] 김현: TMS 디자인 아카이빙 2026 키비주얼 정리\n- [ ] 김현: 인공지능 교육 컨퍼런스 키비주얼 시안 2종 5/11 공유',
+      next_meeting: '2026-05-18', note_md: ''
+    },
+    {
+      timestamp: '2026-05-11 10:32:00', meeting_date: '2026-05-11', week: '2026-W20',
+      title: '주간회의 — 경영지원팀 파트', project_tag: '기타', department: '경영지원팀', author: '이지후',
+      attendees: '이진철, 이지후',
+      agenda_md: '## 선금·잔금\n- 메타버스 선금 100% 신청\n- 번역원 글로벌 문학포럼 선금 신청\n- 글로벌e·스트릿푸드 입금 완료\n- 청주공항 완료계·청구 완료\n\n## 세무·인사·기타\n- 4월 원천세 신고 완료\n- 4월 미첨부 영수증 오늘까지 업로드\n- 이유빈 5/13 16:30 면접 예정\n- 법인폰 수리 완료',
+      decisions_md: '## 결정사항\n- 수기 영수증 업로드 오류 → 분실 처리 가이드 확정',
+      actions_md: '## 액션아이템\n- [ ] 이지후: 메타버스 선금 100% 신청서 작성\n- [ ] 이지후: 번역원 글로벌 문학포럼 선금 신청\n- [ ] 이지후: 4월 미첨부 영수증 업로드 완료\n- [x] 이지후: 4월 원천세 신고\n- [ ] 이지후: 5/13 이유빈 면접 일정 공유',
+      next_meeting: '2026-05-18', note_md: '회의록 작성: 클로드 코드 활용 (진철실장 사내 공유)'
+    },
+    {
       timestamp: '2026-05-09 14:10:00', meeting_date: '2026-05-09', week: '2026-W19',
-      title: 'Darktrace Korea Discovery Meeting 사전 점검', project_tag: '리멤버', author: '이지후',
+      title: 'Darktrace Korea Discovery Meeting 사전 점검', project_tag: '리멤버', department: '신사업실', author: '이지후',
       attendees: '이진철, 이지후, 주대웅(리멤버)',
       agenda_md: '## 안건\n- 6월 본행사 모객 진행률 (현재 28/40)\n- 리멤버 DB 타겟팅 세그먼트 재검토\n- 행사장 베뉴 확정 일정',
       decisions_md: '## 결정사항\n- 타겟 세그먼트: **보안 의사결정자(CISO·정보보안실장급)** 우선\n- 베뉴는 *그랜드 인터컨티넨탈* 5/20까지 확정\n- 모객 부족 시 5/25 추가 캠페인 발송',
@@ -515,7 +558,7 @@ window.STANDALONE_SAMPLE = {
     },
     {
       timestamp: '2026-05-08 16:45:00', meeting_date: '2026-05-08', week: '2026-W19',
-      title: 'MiceConfigurator v3.4 스프린트 킥오프', project_tag: 'MiceConfigurator', author: '곽은지',
+      title: 'MiceConfigurator v3.4 스프린트 킥오프', project_tag: 'MiceConfigurator', department: '신사업실', author: '곽은지',
       attendees: '이진철, 곽은지, 김현',
       agenda_md: '## 안건\n- v3.3 → v3.4 변경 범위 확정\n- 자동 가격 산출 엔진 우선순위 결정\n- LOGIC_SPEC_v1.0.md 갱신 필요 항목 확인',
       decisions_md: '## 결정사항\n- **자동 가격 산출 엔진**을 v3.4 최우선 과제로 지정\n- PCO 수수료 모듈은 v3.5로 이관\n- Tier 구조는 현행 유지, PRESETS 9종 → 12종으로 확장',
@@ -680,11 +723,13 @@ window.STANDALONE_SAMPLE = {
     var out = rows.slice();
     if (state.week && state.week !== 'all') out = out.filter(function (r) { return rowWeek(r) === state.week; });
     if (state.project && state.project !== 'all') out = out.filter(function (r) { return (r.project_tag || '기타') === state.project; });
+    if (state.department && state.department !== 'all') out = out.filter(function (r) { return (r.department || '') === state.department; });
     if (state.keyword) out = out.filter(function (r) { return matchesKeyword(r, state.keyword); });
     out.sort(function (a, b) {
       var da = parseDate(a.meeting_date) || parseDate(a.timestamp) || new Date(0);
       var db = parseDate(b.meeting_date) || parseDate(b.timestamp) || new Date(0);
-      return db - da;
+      if (db - da !== 0) return db - da;
+      return (a.department || '').localeCompare(b.department || '');
     });
     return out;
   }
@@ -720,9 +765,10 @@ window.STANDALONE_SAMPLE = {
       return {
         timestamp: cellAt('timestamp'), meeting_date: cellAt('meeting_date'),
         week: cellAt('week'), title: cellAt('title'),
-        project_tag: cellAt('project_tag'), author: cellAt('author'),
-        attendees: cellAt('attendees'), agenda_md: cellAt('agenda_md'),
-        decisions_md: cellAt('decisions_md'), actions_md: cellAt('actions_md'),
+        project_tag: cellAt('project_tag'), department: cellAt('department'),
+        author: cellAt('author'), attendees: cellAt('attendees'),
+        agenda_md: cellAt('agenda_md'), decisions_md: cellAt('decisions_md'),
+        actions_md: cellAt('actions_md'),
         next_meeting: cellAt('next_meeting'), note_md: cellAt('note_md')
       };
     });
@@ -824,6 +870,49 @@ window.STANDALONE_SAMPLE = {
   global.LocalStore = { list: list, upsert: upsert, remove: remove, clear: clear, importJson: importJson, exportJson: exportJson };
 })(window);
 
+/* ====== InternalSource — 사내 시스템 프로젝트 진행현황 연동 슬롯 ======
+ * 사내 TMS·ERP 등에서 프로젝트 진행현황을 받아 상세 패널·KPI에 통합 표시하기 위한 인터페이스.
+ * 현재는 슬롯과 어댑터 인터페이스만 정의. 실제 사내 시스템 스펙 확인 후 구체 어댑터 구현 예정.
+ *
+ * 어댑터 약속: fetch(systemConfig) → Promise<{ projects: ProjectRecord[], lastUpdated, error? }>
+ *   ProjectRecord: { id, name, status, progress(0~1), owner, due_date, sponsor, contract_amount? }
+ */
+(function (global) {
+  'use strict';
+  var adapters = {
+    generic_json: function (cfg) {
+      var headers = {};
+      if (cfg.auth_header) {
+        var idx = cfg.auth_header.indexOf(':');
+        if (idx > 0) headers[cfg.auth_header.slice(0, idx).trim()] = cfg.auth_header.slice(idx + 1).trim();
+      }
+      return fetch(cfg.api_url, { headers: headers, cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (data) { return { projects: data.projects || [], lastUpdated: new Date().toISOString() }; });
+    },
+    tms: function () {
+      console.warn('[InternalSource] TMS adapter — 사내 시스템 스펙 확인 후 구현 예정');
+      return Promise.resolve({ projects: [], lastUpdated: null, note: 'TMS adapter not yet implemented' });
+    },
+    erp: function () {
+      console.warn('[InternalSource] ERP adapter — 사내 시스템 스펙 확인 후 구현 예정');
+      return Promise.resolve({ projects: [], lastUpdated: null, note: 'ERP adapter not yet implemented' });
+    }
+  };
+  function fetchProjects(systemConfig) {
+    if (!systemConfig || !systemConfig.enabled || !systemConfig.api_url) {
+      return Promise.resolve({ projects: [], disabled: true });
+    }
+    var adapter = adapters[systemConfig.adapter] || adapters.generic_json;
+    return adapter(systemConfig).catch(function (err) {
+      console.error('[InternalSource] fetch 실패:', err.message);
+      return { projects: [], error: err.message };
+    });
+  }
+  function registerAdapter(name, fn) { adapters[name] = fn; }
+  global.InternalSource = { fetchProjects: fetchProjects, registerAdapter: registerAdapter, adapters: adapters };
+})(window);
+
 /* ====== Render ====== */
 (function (global) {
   'use strict';
@@ -865,23 +954,30 @@ window.STANDALONE_SAMPLE = {
     if (FILTER.rowWeek(row) === FILTER.currentWeekISO()) return { cls: 'meeting-item--this-week', tag: '이번주' };
     return { cls: '', tag: '' };
   }
-  function projectChips(config, rows, currentProject, onPick) {
-    var container = el('project-chips');
+  function renderChips(containerId, items, rows, getKey, current, onPick) {
+    var container = el(containerId);
     var counts = { all: rows.length };
-    (config.projects || []).forEach(function (p) { counts[p] = 0; });
-    rows.forEach(function (r) { var p = r.project_tag || '기타'; counts[p] = (counts[p] || 0) + 1; });
-    var entries = [['all','전체']].concat((config.projects || []).map(function (p) { return [p, p]; }));
+    items.forEach(function (it) { counts[it] = 0; });
+    rows.forEach(function (r) { var k = getKey(r); if (k) counts[k] = (counts[k] || 0) + 1; });
+    var entries = [['all', '전체']].concat(items.map(function (i) { return [i, i]; }));
     container.innerHTML = '';
     entries.forEach(function (e) {
       var key = e[0]; var label = e[1];
       var btn = document.createElement('button');
       btn.className = 'chip';
-      btn.setAttribute('aria-pressed', String(key === currentProject));
-      btn.dataset.project = key;
+      btn.setAttribute('aria-pressed', String(key === current));
       btn.innerHTML = MD.escapeHtml(label) + ' <span class="chip__count">' + (counts[key] || 0) + '</span>';
       btn.addEventListener('click', function () { onPick(key); });
       container.appendChild(btn);
     });
+  }
+  function projectChips(config, rows, currentProject, onPick) {
+    renderChips('project-chips', config.projects || [], rows,
+      function (r) { return r.project_tag || '기타'; }, currentProject, onPick);
+  }
+  function departmentChips(config, rows, currentDept, onPick) {
+    renderChips('department-chips', config.departments || [], rows,
+      function (r) { return r.department || ''; }, currentDept, onPick);
   }
   function list(rows, selectedKey, onSelect) {
     var listEl = el('meeting-list');
@@ -891,7 +987,19 @@ window.STANDALONE_SAMPLE = {
     count.textContent = rows.length + '건';
     if (rows.length === 0) { empty.hidden = false; return; }
     empty.hidden = true;
+
+    var lastDate = null;
     rows.forEach(function (row) {
+      var d = row.meeting_date || '';
+      if (d !== lastDate) {
+        var groupCount = rows.filter(function (r) { return (r.meeting_date || '') === d; }).length;
+        var header = document.createElement('li');
+        header.className = 'meeting-group';
+        header.textContent = (d || '날짜 없음') + (groupCount > 1 ? ' · ' + groupCount + '개 부서' : '');
+        listEl.appendChild(header);
+        lastDate = d;
+      }
+
       var li = document.createElement('li');
       var key = rowKey(row);
       var recency = recencyClass(row);
@@ -902,6 +1010,8 @@ window.STANDALONE_SAMPLE = {
       var taskBadge = tasks.total > 0 ? '<span class="tag">액션 ' + tasks.done + '/' + tasks.total + '</span>' : '';
       var recencyBadge = recency.tag
         ? '<span class="tag ' + (recency.tag === '오늘' ? 'tag--today' : 'tag--week') + '">' + recency.tag + '</span>' : '';
+      var deptBadge = row.department
+        ? '<span class="tag tag--department">' + MD.escapeHtml(row.department) + '</span>' : '';
       li.innerHTML =
         '<div class="meeting-item__row">' +
           '<span class="meeting-item__title">' + MD.escapeHtml(row.title || '(제목없음)') + '</span>' +
@@ -909,6 +1019,7 @@ window.STANDALONE_SAMPLE = {
         '</div>' +
         '<div class="meeting-item__meta">' +
           recencyBadge +
+          deptBadge +
           '<span class="tag tag--project">' + MD.escapeHtml(row.project_tag || '기타') + '</span>' +
           '<span class="tag tag--author">' + MD.escapeHtml(row.author || '') + '</span>' +
           taskBadge +
@@ -942,6 +1053,7 @@ window.STANDALONE_SAMPLE = {
         '<h1 class="detail__title">' + MD.escapeHtml(row.title || '(제목없음)') + '</h1>' +
         '<div class="detail__meta">' +
           '<span>📅 ' + MD.escapeHtml(formatDate(row.meeting_date)) + '</span>' +
+          (row.department ? '<span>🏢 ' + MD.escapeHtml(row.department) + '</span>' : '') +
           '<span>🗂 ' + MD.escapeHtml(row.project_tag || '기타') + '</span>' +
           '<span>✍️ ' + MD.escapeHtml(row.author || '') + '</span>' +
           '<span>👥 ' + MD.escapeHtml(row.attendees || '') + '</span>' +
@@ -962,14 +1074,14 @@ window.STANDALONE_SAMPLE = {
       if (delBtn) delBtn.addEventListener('click', function () { callbacks.onDelete(row); });
     }
   }
-  global.MeetingRender = { kpis: kpis, list: list, detail: detail, projectChips: projectChips, rowKey: rowKey };
+  global.MeetingRender = { kpis: kpis, list: list, detail: detail, projectChips: projectChips, departmentChips: departmentChips, rowKey: rowKey };
 })(window);
 
 /* ====== App Controller ====== */
 (function (global) {
   'use strict';
   var STORAGE_KEY_THEME = 'jc-meeting-dashboard:theme';
-  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null };
+  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null };
   function $(id) { return document.getElementById(id); }
 
   function fetchAllRows(config) {
@@ -1016,8 +1128,11 @@ window.STANDALONE_SAMPLE = {
     var filtered = MeetingFilter.apply(rows, state.filter);
     var currentWeek = state.filter.week === 'all' ? MeetingFilter.currentWeekISO() : state.filter.week;
     MeetingRender.kpis(rows, currentWeek);
+    MeetingRender.departmentChips(state.config, rows, state.filter.department, function (dept) {
+      state.filter.department = dept; state.selectedKey = null; renderAll();
+    });
     MeetingRender.projectChips(state.config, rows, state.filter.project, function (project) {
-      state.filter.project = project; renderAll();
+      state.filter.project = project; state.selectedKey = null; renderAll();
     });
     MeetingRender.list(filtered, state.selectedKey, function (row) {
       state.selectedKey = MeetingRender.rowKey(row);
@@ -1085,14 +1200,17 @@ window.STANDALONE_SAMPLE = {
 
   function populateSelects(config) {
     var proj = $('f-project_tag');
+    var dept = $('f-department');
     var auth = $('f-author');
-    if (!proj || !auth) return;
-    proj.innerHTML = (config.projects || ['기타']).map(function (p) {
-      return '<option value="' + MiniMarkdown.escapeHtml(p) + '">' + MiniMarkdown.escapeHtml(p) + '</option>';
-    }).join('');
-    auth.innerHTML = ((config.team && config.team.members) || []).map(function (m) {
-      return '<option value="' + MiniMarkdown.escapeHtml(m) + '">' + MiniMarkdown.escapeHtml(m) + '</option>';
-    }).join('');
+    if (!proj || !auth || !dept) return;
+    function opts(items) {
+      return items.map(function (v) {
+        return '<option value="' + MiniMarkdown.escapeHtml(v) + '">' + MiniMarkdown.escapeHtml(v) + '</option>';
+      }).join('');
+    }
+    proj.innerHTML = opts(config.projects || ['기타']);
+    dept.innerHTML = '<option value="">(선택 안 함)</option>' + opts(config.departments || []);
+    auth.innerHTML = opts((config.team && config.team.members) || []);
   }
 
   function openModal(row) {
@@ -1106,7 +1224,9 @@ window.STANDALONE_SAMPLE = {
     $('f-title').value = row ? (row.title || '') : '';
     var defaultProj = (state.config.projects || ['기타'])[0];
     var defaultAuthor = ((state.config.team && state.config.team.members) || [''])[0];
+    var defaultDept = (state.config.departments || [''])[0];
     $('f-project_tag').value = row ? (row.project_tag || defaultProj) : defaultProj;
+    $('f-department').value = row ? (row.department || '') : defaultDept;
     $('f-author').value = row ? (row.author || defaultAuthor) : defaultAuthor;
     $('f-attendees').value = row ? (row.attendees || '') : ((state.config.team && state.config.team.members) || []).join(', ');
     $('f-agenda_md').value = row ? (row.agenda_md || '') : '## 안건\n- ';
@@ -1131,6 +1251,7 @@ window.STANDALONE_SAMPLE = {
       week: '',
       title: title,
       project_tag: $('f-project_tag').value,
+      department: $('f-department').value,
       author: $('f-author').value,
       attendees: $('f-attendees').value,
       agenda_md: $('f-agenda_md').value,

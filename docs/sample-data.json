@@ -1,0 +1,47 @@
+{
+  "_comment": "시트 미연결 시 fallback 데이터. config.json의 sheet.id가 비어있을 때 사용됨.",
+  "rows": [
+    {
+      "timestamp": "2026-05-11 10:32:00",
+      "meeting_date": "2026-05-11",
+      "week": "2026-W20",
+      "title": "신사업실 주간 정기회의",
+      "project_tag": "기타",
+      "author": "김정길",
+      "attendees": "이진철, 김정길, 곽은지, 김현, 이지후",
+      "agenda_md": "## 안건\n- 이번 주 프로젝트별 진척 공유\n- 5월 매출 파이프라인 점검\n- 리멤버 협업 일정 조율\n- ConfEx 박람회 수주 전략 논의",
+      "decisions_md": "## 결정사항\n- **MiceConfigurator** v3.4 업그레이드 5/22까지 알파 완료\n- **Darktrace Korea** 모객 바텀라인 40명 → 5/30까지 60명으로 상향 추진\n- ConfEx 박람회 수주 TF 구성 (리드: 곽은지 대리)",
+      "actions_md": "## 액션아이템\n- [x] 김정길: 5월 매출 파이프라인 시트 정리\n- [ ] 곽은지: ConfEx 박람회 운영사 리스트업 (5/15까지)\n- [ ] 김현: 리멤버 명함 DB 의사결정자 비율 분석 (5/16까지)\n- [ ] 이지후: Darktrace 모객 진행률 일일 보고\n- [x] 이진철: 주대웅 실장 협업 일정 confirm",
+      "next_meeting": "2026-05-18",
+      "note_md": ""
+    },
+    {
+      "timestamp": "2026-05-09 14:10:00",
+      "meeting_date": "2026-05-09",
+      "week": "2026-W19",
+      "title": "Darktrace Korea Discovery Meeting 사전 점검",
+      "project_tag": "리멤버",
+      "author": "이지후",
+      "attendees": "이진철, 이지후, 주대웅(리멤버)",
+      "agenda_md": "## 안건\n- 6월 본행사 모객 진행률 (현재 28/40)\n- 리멤버 DB 타겟팅 세그먼트 재검토\n- 행사장 베뉴 확정 일정",
+      "decisions_md": "## 결정사항\n- 타겟 세그먼트: **보안 의사결정자(CISO·정보보안실장급)** 우선\n- 베뉴는 *그랜드 인터컨티넨탈* 5/20까지 확정\n- 모객 부족 시 5/25 추가 캠페인 발송",
+      "actions_md": "## 액션아이템\n- [ ] 이지후: 리멤버 DB 추출 조건서 작성 (5/12)\n- [ ] 주대웅: 타겟 리스트 1차 추출 (5/14)\n- [x] 이진철: 베뉴 옵션 3개 비교표 송부\n- [ ] 이지후: 모객 대시보드 일일 업데이트",
+      "next_meeting": "2026-05-16",
+      "note_md": "리멤버 DB 의사결정자 비율 60% — 업계 평균 20% 대비 핵심 차별화 포인트."
+    },
+    {
+      "timestamp": "2026-05-08 16:45:00",
+      "meeting_date": "2026-05-08",
+      "week": "2026-W19",
+      "title": "MiceConfigurator v3.4 스프린트 킥오프",
+      "project_tag": "MiceConfigurator",
+      "author": "곽은지",
+      "attendees": "이진철, 곽은지, 김현",
+      "agenda_md": "## 안건\n- v3.3 → v3.4 변경 범위 확정\n- 자동 가격 산출 엔진 우선순위 결정\n- LOGIC_SPEC_v1.0.md 갱신 필요 항목 확인",
+      "decisions_md": "## 결정사항\n- **자동 가격 산출 엔진**을 v3.4 최우선 과제로 지정\n- PCO 수수료 모듈은 v3.5로 이관\n- Tier 구조는 현행 유지, PRESETS 9종 → 12종으로 확장",
+      "actions_md": "## 액션아이템\n- [x] 곽은지: 스프린트 백로그 정리\n- [ ] 김현: 베뉴 DB 20개 → 30개 확장 리서치 (5/20)\n- [ ] 이진철: LOGIC_SPEC v1.1 초안 (5/18)\n- [ ] 곽은지: Lovable 빌드 환경 점검\n- [ ] 김현: PRESETS 추가 3종 가격 검증",
+      "next_meeting": "2026-05-15",
+      "note_md": "Lovable + GitHub 연동 구조 유지. LOGIC_SPEC가 SSOT."
+    }
+  ]
+}

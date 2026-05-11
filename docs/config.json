@@ -1,0 +1,35 @@
+{
+  "app": {
+    "title": "M&C 신사업실 주간회의록",
+    "subtitle": "Weekly Meeting Dashboard",
+    "polling_interval_ms": 30000
+  },
+  "sheet": {
+    "id": "",
+    "gid": "0",
+    "sheet_name": "회의록"
+  },
+  "links": {
+    "form_url": "",
+    "edit_url": ""
+  },
+  "team": {
+    "company": "M&C커뮤니케이션즈 신사업실",
+    "members": ["이진철", "김정길", "곽은지", "김현", "이지후"]
+  },
+  "projects": ["MiceConfigurator", "리멤버", "ConfEx", "IUCR", "기타"],
+  "column_mapping": {
+    "timestamp": "타임스탬프",
+    "meeting_date": "회의일자",
+    "week": "주차",
+    "title": "회의명",
+    "project_tag": "프로젝트",
+    "author": "작성자",
+    "attendees": "참석자",
+    "agenda_md": "안건",
+    "decisions_md": "결정사항",
+    "actions_md": "액션아이템",
+    "next_meeting": "다음회의",
+    "note_md": "비고"
+  }
+}

@@ -34,6 +34,18 @@ python3 -m http.server 8000
 
 `config.json`의 `sheet.id`가 비어있으면 `sample-data.json`(더미 회의록 3건)으로 동작합니다.
 
+## 더 간단한 방법 — `dashboard.html` 단일 파일
+
+루트의 **`dashboard.html`** 파일은 모든 자원(CSS·JS·샘플데이터)을 인라인으로 포함한 standalone 버전입니다. 별도 서버·빌드·연결 없이:
+
+1. `dashboard.html`을 다운로드 (GitHub에서 `Raw` → 우클릭 `다른 이름으로 저장`)
+2. 파일을 **더블클릭** → 브라우저에서 즉시 열림
+3. 샘플 회의록 3건이 표시되며 모든 기능(다크모드·필터·검색·진행률바)이 정상 동작
+
+**시트 연결 전환**: 파일 안의 `window.STANDALONE_CONFIG.sheet.id` 값을 시트 ID로 바꾸기만 하면 됩니다. (멀티파일 `docs/` 버전의 `config.json`과 동일한 키 구조)
+
+> 회의실 PC 한 대만 사용한다면 standalone이 가장 간편합니다. 5인이 사내망에서 함께 보려면 `docs/` 폴더를 GitHub Pages에 올리는 멀티파일 운영을 권장.
+
 ## 구글시트 연결 (운영 전환)
 
 ### 1. 구글시트 양식 만들기

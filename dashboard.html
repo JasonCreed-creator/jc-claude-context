@@ -1610,10 +1610,20 @@ window.STANDALONE_SAMPLE = {
   }
   function renderPartCards(rows, config, container) {
     if (!container) return;
+    if (!config) {
+      container.innerHTML = '<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">설정 로딩 중…</div>';
+      return;
+    }
+    if (!rows || rows.length === 0) {
+      container.innerHTML = '<div style="grid-column:1/-1;padding:30px;text-align:center;color:var(--text-muted);font-size:13px;">회의록 데이터가 없습니다. ＋ 회의록 작성으로 추가하면 부서별로 자동 집계됩니다.</div>';
+      return;
+    }
     var depts = (config.departments || []).filter(function (d) { return d !== '전체(주간회의)'; });
+    console.log('[AutoSections] renderPartCards', { rowCount: rows.length, deptCount: depts.length, depts: depts });
     var html = '';
     depts.forEach(function (dept) {
       var deptRows = rows.filter(function (r) { return r.department === dept; });
+      console.log('[AutoSections]', dept, 'rows:', deptRows.length);
       if (deptRows.length === 0) return;
       var projects = {};
       var actions = [];
@@ -1642,7 +1652,22 @@ window.STANDALONE_SAMPLE = {
         (decsList.length > 0 ? sectionHtml('결정사항', decsList.length, decsList.map(escapeHtml)) : '') +
       '</div>';
     });
-    container.innerHTML = html || '<div style="grid-column:1/-1;padding:30px;text-align:center;color:var(--text-muted);font-size:13px;">파트별 과업이 없습니다. 회의록을 작성하면 부서별로 자동 집계됩니다.</div>';
+    if (!html) {
+      var unmatchedCount = rows.filter(function (r) {
+        return !r.department || depts.indexOf(r.department) === -1;
+      }).length;
+      var msg = '<div style="grid-column:1/-1;padding:30px;text-align:center;color:var(--text-muted);font-size:13px;">';
+      if (unmatchedCount > 0) {
+        msg += '회의록 ' + rows.length + '건 중 부서가 매칭되는 항목이 없습니다 (' + unmatchedCount + '건 부서 미지정).<br><br>' +
+          '＋ 회의록 작성 시 <strong>부서</strong>를 선택하면 이 영역에 자동 표시됩니다.';
+      } else {
+        msg += '파트별 과업이 없습니다. ＋ 회의록 작성으로 부서를 선택하면 자동 집계됩니다.';
+      }
+      msg += '</div>';
+      container.innerHTML = msg;
+    } else {
+      container.innerHTML = html;
+    }
   }
   function computeProjectCount(rows) {
     var seen = {};
@@ -2051,7 +2076,7 @@ window.STANDALONE_SAMPLE = {
       return prefix + owner + a.text + due;
     }).join('\n');
   }
-  function renderTreeQuickList(elId, items, removeKey, removeSubKey, toggleKey, addSubKey, subInputKey, openSubIdx) {
+  function renderTreeQuickList(elId, items, removeKey, removeSubKey, addSubKey, subInputKey) {
     var el = $(elId); if (!el) return;
     el.innerHTML = items.map(function (item, i) {
       var children = (item.children || []).map(function (c, ci) {
@@ -2060,28 +2085,27 @@ window.STANDALONE_SAMPLE = {
           '<button type="button" class="quick-item__remove" data-' + removeSubKey + '="' + i + ':' + ci + '" aria-label="삭제">×</button>' +
         '</div>';
       }).join('');
-      var subAdd = openSubIdx === i
-        ? '<div class="quick-add quick-add--sub">' +
-            '<input type="text" placeholder="하위 항목 입력 후 Enter" data-' + subInputKey + '="' + i + '" />' +
-            '<button type="button" class="btn btn--primary btn--sm" data-' + addSubKey + '="' + i + '">추가</button>' +
-          '</div>'
-        : '';
-      return '<div class="quick-item">' +
-          '<span class="quick-item__text"><strong>' + MiniMarkdown.escapeHtml(item.text) + '</strong></span>' +
-          '<button type="button" class="btn btn--ghost btn--sm" data-' + toggleKey + '="' + i + '">' + (openSubIdx === i ? '닫기' : '+ 하위') + '</button>' +
-          '<button type="button" class="quick-item__remove" data-' + removeKey + '="' + i + '" aria-label="삭제">×</button>' +
-        '</div>' + children + subAdd;
+      var subAdd =
+        '<div class="quick-add quick-add--sub">' +
+          '<input type="text" placeholder="↳ 하위 항목 한 줄 입력 후 Enter" data-' + subInputKey + '="' + i + '" />' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-' + addSubKey + '="' + i + '">+ 하위</button>' +
+        '</div>';
+      return '<div class="quick-item-group">' +
+          '<div class="quick-item quick-item--parent">' +
+            '<span class="quick-item__text"><strong>' + MiniMarkdown.escapeHtml(item.text) + '</strong></span>' +
+            '<button type="button" class="quick-item__remove" data-' + removeKey + '="' + i + '" aria-label="삭제">×</button>' +
+          '</div>' +
+          children + subAdd +
+        '</div>';
     }).join('');
   }
   function renderAgendaQuickList() {
     renderTreeQuickList('f-agenda-list', state.modal.agenda,
-      'remove-agenda', 'remove-agenda-sub', 'toggle-agenda-sub', 'add-agenda-sub', 'sub-input-agenda',
-      state.modal.agendaSubOpen);
+      'remove-agenda', 'remove-agenda-sub', 'add-agenda-sub', 'sub-input-agenda');
   }
   function renderDecisionsQuickList() {
     renderTreeQuickList('f-decisions-list', state.modal.decisions,
-      'remove-decisions', 'remove-decisions-sub', 'toggle-decisions-sub', 'add-decisions-sub', 'sub-input-decisions',
-      state.modal.decisionsSubOpen);
+      'remove-decisions', 'remove-decisions-sub', 'add-decisions-sub', 'sub-input-decisions');
   }
   function renderActionsQuickList() {
     var el = $('f-actions-list'); if (!el) return;
@@ -2224,6 +2248,7 @@ window.STANDALONE_SAMPLE = {
   function hideError() { $('error-banner').hidden = true; }
   function onDataUpdate(result) {
     state.rows = result.rows || [];
+    console.log('[onDataUpdate] rows:', state.rows.length, 'source:', result.source, 'local:', LocalStore.list().length);
     populateWeekSelect();
     renderAll();
     updateLastUpdated(result.source, result.error);
@@ -2249,7 +2274,7 @@ window.STANDALONE_SAMPLE = {
       }).join('');
     }
     proj.innerHTML = opts(config.projects || ['기타']);
-    dept.innerHTML = '<option value="">(선택 안 함)</option>' + opts(config.departments || []);
+    dept.innerHTML = opts((config.departments || []).filter(function (d) { return d !== '전체(주간회의)'; }).concat(['전체(주간회의)']));
     auth.innerHTML = opts((config.team && config.team.members) || []);
     if (actionOwner) actionOwner.innerHTML = '<option value="">담당자</option>' + opts((config.team && config.team.members) || []);
     populateAttendeePicker(config);
@@ -2366,33 +2391,45 @@ window.STANDALONE_SAMPLE = {
   function closeModal() { $('modal-overlay').hidden = true; state.editingId = null; }
 
   function saveModal() {
-    var title = $('f-title').value.trim();
-    var date = $('f-meeting_date').value;
-    if (!title) { toast('회의명을 입력하세요', 2500); $('f-title').focus(); return; }
-    if (!date) { toast('회의일자를 선택하세요', 2500); $('f-meeting_date').focus(); return; }
-    var id = $('f-id').value || null;
-    var row = {
-      _id: id,
-      timestamp: new Date().toISOString(),
-      meeting_date: date,
-      week: '',
-      title: title,
-      project_tag: $('f-project_tag').value,
-      department: $('f-department').value,
-      author: $('f-author').value,
-      attendees: collectAttendeesText(),
-      agenda_md: serializeAgenda('안건', state.modal.agenda),
-      decisions_md: serializeAgenda('결정사항', state.modal.decisions),
-      actions_md: serializeActions(state.modal.actions),
-      next_meeting: $('f-next_meeting').value,
-      note_md: $('f-note_md').value
-    };
-    var saved = LocalStore.upsert(row);
-    if (!saved) { toast('저장 실패 — localStorage 용량 초과 가능성', 4000); return; }
-    closeModal();
-    state.selectedKey = MeetingRender.rowKey(saved);
-    reload();
-    toast(id ? '수정되었습니다' : '저장되었습니다', 2000);
+    try {
+      var title = $('f-title').value.trim();
+      var date = $('f-meeting_date').value;
+      if (!title) { toast('회의명을 입력하세요', 2500); $('f-title').focus(); return; }
+      if (!date) { toast('회의일자를 선택하세요', 2500); $('f-meeting_date').focus(); return; }
+      var id = $('f-id').value || null;
+      var dept = $('f-department').value;
+      if (!dept) {
+        toast('부서를 선택하세요 (파트별 카드에 자동 반영됩니다)', 3000);
+        $('f-department').focus(); return;
+      }
+      var row = {
+        _id: id,
+        timestamp: new Date().toISOString(),
+        meeting_date: date,
+        week: '',
+        title: title,
+        project_tag: $('f-project_tag').value,
+        department: dept,
+        author: $('f-author').value,
+        attendees: collectAttendeesText(),
+        agenda_md: serializeAgenda('안건', state.modal.agenda),
+        decisions_md: serializeAgenda('결정사항', state.modal.decisions),
+        actions_md: serializeActions(state.modal.actions),
+        next_meeting: $('f-next_meeting').value,
+        note_md: $('f-note_md').value
+      };
+      console.log('[saveModal] saving row:', row);
+      var saved = LocalStore.upsert(row);
+      if (!saved) { toast('저장 실패 — localStorage 용량 초과 가능성', 4000); return; }
+      console.log('[saveModal] saved, LocalStore count:', LocalStore.list().length);
+      closeModal();
+      state.selectedKey = MeetingRender.rowKey(saved);
+      reload();
+      toast(id ? '수정되었습니다' : '저장되었습니다', 2500);
+    } catch (e) {
+      console.error('[saveModal] error:', e);
+      toast('저장 중 오류: ' + e.message, 5000);
+    }
   }
 
   function deleteFromModal() {
@@ -2495,18 +2532,6 @@ window.STANDALONE_SAMPLE = {
           var pi = parseInt(parts[0], 10); var ci = parseInt(parts[1], 10);
           if (list[pi]) list[pi].children.splice(ci, 1);
           render(); return;
-        }
-        var tog = e.target.closest('[data-toggle-' + name + '-sub]');
-        if (tog) {
-          var ti = parseInt(tog.getAttribute('data-toggle-' + name + '-sub'), 10);
-          var key = name === 'agenda' ? 'agendaSubOpen' : 'decisionsSubOpen';
-          state.modal[key] = (state.modal[key] === ti) ? -1 : ti;
-          render();
-          setTimeout(function () {
-            var subInput = listEl.querySelector('[data-sub-input-' + name + '="' + ti + '"]');
-            if (subInput) subInput.focus();
-          }, 0);
-          return;
         }
         var addSub = e.target.closest('[data-add-' + name + '-sub]');
         if (addSub) {

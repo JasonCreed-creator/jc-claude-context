@@ -501,6 +501,53 @@ body {
 }
 .attendee-pick.is-selected::before { content: '✓ '; font-size: 11px; }
 
+/* Quick-add list (agenda / decisions / actions) */
+.quick-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.quick-list:empty { display: none; }
+.quick-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-card); border-radius: var(--radius-md);
+  font-size: 13px; color: var(--text);
+}
+.quick-item__text { flex: 1; line-height: 1.4; }
+.quick-item__remove {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 18px; padding: 2px 6px; line-height: 1;
+  border-radius: 4px;
+}
+.quick-item__remove:hover { color: var(--danger); background: rgba(220,38,38,0.08); }
+.quick-add { display: flex; gap: 8px; align-items: center; }
+.quick-add input { flex: 1; }
+.action-add { display: grid; grid-template-columns: 130px 1fr 140px auto; gap: 6px; align-items: center; }
+.action-add select, .action-add input { width: 100%; }
+@media (max-width: 640px) {
+  .action-add { grid-template-columns: 1fr; }
+}
+
+/* Action item with checkbox + meta */
+.action-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-card); border-radius: var(--radius-md);
+  font-size: 13px;
+}
+.action-item__check {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 1.5px solid var(--border-strong); border-radius: 4px;
+  background: var(--bg-elev); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.action-item__check.is-done {
+  background: var(--success); border-color: var(--success); color: #FFFFFF;
+}
+.action-item__owner { font-weight: 600; color: var(--accent); white-space: nowrap; }
+.action-item__text { flex: 1; line-height: 1.4; }
+.action-item__due { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); white-space: nowrap; }
+.action-item.is-done .action-item__text,
+.action-item.is-done .action-item__owner { color: var(--text-muted); text-decoration: line-through; }
+
 /* ---------- New sections (Phase B+C) ---------- */
 .biz-section {
   margin: 0 var(--gap-3) var(--gap-3);
@@ -616,6 +663,47 @@ body {
 .man-bar__fill--done { background: var(--success); }
 .man-subtitle { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 10px; }
 .man-subtitle:first-of-type { margin-top: 4px; }
+
+/* Parts overview */
+.parts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.part-card {
+  background: var(--bg-elev); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg); padding: 16px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.part-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.part-card[data-dept="MICE 기획팀"] { border-left-color: var(--jc-magenta); }
+.part-card[data-dept="신사업 기획팀"] { border-left-color: var(--accent); }
+.part-card[data-dept="콘텐츠기획팀"] { border-left-color: var(--jc-neon); }
+.part-card[data-dept="경영지원팀"] { border-left-color: var(--jc-orange); }
+.part-card__head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.part-card__badge {
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.part-card__name { font-size: 16px; font-weight: 700; color: var(--jc-primary); }
+[data-theme="dark"] .part-card__name { color: var(--text); }
+.part-card__lead { font-size: 11px; color: var(--text-muted); margin-left: auto; font-family: var(--font-mono); }
+.part-card__section { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.part-card__section:first-of-type { border-top: none; padding-top: 0; }
+.part-card__label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.part-card__label-count { font-family: var(--font-mono); color: var(--accent); font-weight: 700; }
+.part-card__section ul { list-style: none; padding: 0; margin: 0; }
+.part-card__section li {
+  font-size: 12.5px; padding: 4px 0 4px 14px;
+  position: relative; color: var(--text); line-height: 1.4;
+}
+.part-card__section li::before {
+  content: '·'; position: absolute; left: 4px;
+  color: var(--text-muted); font-weight: 700;
+}
+.part-card__section li.is-done { color: var(--text-muted); text-decoration: line-through; }
+.part-card__section li.is-done::before { content: '✓'; color: var(--success); }
 
 @media (max-width: 1200px) {
   .kpis { grid-template-columns: repeat(3, 1fr); }
@@ -812,6 +900,199 @@ body {
     </div>
   </section>
 
+  <section class="biz-section" aria-label="파트별 주간 핵심 과업">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title"><span class="sec-title__bar"></span>파트별 주간 핵심 과업</div>
+        <div class="sec-desc">2026-05-11 주간회의 기준 · 진행 프로젝트·결정·액션 요약</div>
+      </div>
+      <span class="sec-tag">6개 파트</span>
+    </div>
+    <div class="parts-grid">
+
+      <div class="part-card" data-dept="MICE 기획팀">
+        <div class="part-card__head">
+          <span class="part-card__badge">MICE 기획팀</span>
+          <div class="part-card__name">기획1파트</div>
+          <div class="part-card__lead">정은용 과장 · 3인</div>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">5</span></div>
+          <ul>
+            <li>번역원 글로벌 문학포럼 (7월)</li>
+            <li>KTO 비즈데이 (5/28)</li>
+            <li>제100차 한국관광학회 학술대회</li>
+            <li>공공 AI 정책워크숍 (5/18~21)</li>
+            <li>부탄 Study Visit (~5/12)</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">주요 액션 <span class="part-card__label-count">3</span></div>
+          <ul>
+            <li>연사 3인 항공권 확정</li>
+            <li>KTO 만족도조사·시나리오</li>
+            <li>관광학회 세션 사유 금주 전달</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="part-card" data-dept="MICE 기획팀">
+        <div class="part-card__head">
+          <span class="part-card__badge">MICE 기획팀</span>
+          <div class="part-card__name">기획2파트</div>
+          <div class="part-card__lead">임혜전 과장 · 3인</div>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">5</span></div>
+          <ul>
+            <li>번역원 30주년 기념식 (5/21) <strong>D-10</strong></li>
+            <li>투비소프트 그랜드세미나 (5/27)</li>
+            <li>옥타브 (6/25)</li>
+            <li>러닝페스티벌 (7/24~25)</li>
+            <li>메가인포 (6/25)</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">주요 액션 <span class="part-card__label-count">4</span></div>
+          <ul>
+            <li>번역원 30주년 SNS 이벤트 (~수)</li>
+            <li>번역원 30주년 식수 발주 (~5/12)</li>
+            <li>러닝페스티벌 코엑스 대관 (~5/12)</li>
+            <li>러닝페스티벌 5/19 기술협상</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">결정사항 <span class="part-card__label-count">1</span></div>
+          <ul>
+            <li>번역원 30주년: 셀프 세팅 + 종이명패 5/14 발주</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="part-card" data-dept="MICE 기획팀">
+        <div class="part-card__head">
+          <span class="part-card__badge">MICE 기획팀</span>
+          <div class="part-card__name">구매·섭외파트</div>
+          <div class="part-card__lead">이효원 주임 · 1인</div>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">진행 업무 <span class="part-card__label-count">2</span></div>
+          <ul>
+            <li>KTO 비즈데이 셔틀버스·차량 등록</li>
+            <li>제작물 발주 관리 (다수 프로젝트)</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">주요 액션 <span class="part-card__label-count">2</span></div>
+          <ul>
+            <li>KTO 셔틀버스 차량번호 (5/26 오전)</li>
+            <li>KTO 차량 사전등록 일괄</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="part-card" data-dept="신사업 기획팀">
+        <div class="part-card__head">
+          <span class="part-card__badge">신사업 기획팀</span>
+          <div class="part-card__name">신사업파트</div>
+          <div class="part-card__lead">김정길 과장 · 5인</div>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">5</span></div>
+          <ul>
+            <li>리멤버 협업 (8건 견적·decision makers 150)</li>
+            <li>RMB REBUILD26 결과보고</li>
+            <li>RMB 센트릭 RSVP (5/21)</li>
+            <li>MiceConfigurator v3.4</li>
+            <li>IUCR 2032 유치제안서</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">주요 액션 <span class="part-card__label-count">5</span></div>
+          <ul>
+            <li>ConfEx 운영사 리스트업 (~5/15)</li>
+            <li>리멤버 DB 의사결정자 비율 분석 (~5/16)</li>
+            <li>베뉴 DB 30개 확장 (~5/20)</li>
+            <li>LOGIC_SPEC v1.1 초안 (~5/18)</li>
+            <li>리멤버×MnC 차주 사업계획 PT</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">결정사항 <span class="part-card__label-count">2</span></div>
+          <ul>
+            <li>자동 가격 산출 엔진을 v3.4 최우선 과제</li>
+            <li>ConfEx 박람회 수주 TF 리드: 곽은지 대리</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="part-card" data-dept="콘텐츠기획팀">
+        <div class="part-card__head">
+          <span class="part-card__badge">콘텐츠기획팀</span>
+          <div class="part-card__name">콘텐츠 제작</div>
+          <div class="part-card__lead">서석민 대리 · 3인</div>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">6</span></div>
+          <ul>
+            <li>번역원 30주년 제작물 발주</li>
+            <li>KTO 비즈데이 키비주얼·제작물</li>
+            <li>옥타브 키비주얼·랜딩</li>
+            <li>공공 AI 정책워크숍 키비주얼·발표자료</li>
+            <li>APOTC 2028 키비주얼</li>
+            <li>회사소개서 중철제본</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">주요 액션 <span class="part-card__label-count">4</span></div>
+          <ul>
+            <li>5/12 회사소개서 중철제본 발주</li>
+            <li>5/15 옥타브 키비주얼 시안 2종</li>
+            <li>5/20 옥타브 랜딩 초안</li>
+            <li>인공지능 교육 컨퍼런스 키비주얼 5/11 공유</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">결정사항 <span class="part-card__label-count">1</span></div>
+          <ul>
+            <li>호텔 나루 답사 5/29 15:00 (갤러리·나루볼룸)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="part-card" data-dept="경영지원팀">
+        <div class="part-card__head">
+          <span class="part-card__badge">경영지원팀</span>
+          <div class="part-card__name">경영지원</div>
+          <div class="part-card__lead">김현정 과장 · 2인</div>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">진행 업무 <span class="part-card__label-count">3</span></div>
+          <ul>
+            <li>선금·잔금 정산 (메타버스·번역원 등)</li>
+            <li>세무 (원천세·영수증)</li>
+            <li>인사·복리후생</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">주요 액션 <span class="part-card__label-count">3</span></div>
+          <ul>
+            <li class="is-done">4월 원천세 신고 완료</li>
+            <li>메타버스 선금 신청</li>
+            <li>번역원 글로벌 문학포럼 선금 신청</li>
+          </ul>
+        </div>
+        <div class="part-card__section">
+          <div class="part-card__label">결정사항 <span class="part-card__label-count">1</span></div>
+          <ul>
+            <li>수기 영수증 업로드 오류 → 분실 처리 절차 가이드 확정</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <section class="biz-section" aria-label="매뉴얼 작성 진척">
     <div class="sec-head">
       <div>
@@ -982,22 +1263,35 @@ body {
             <span class="field__hint">전사 19명 중 참석자 체크 + 외부 참석자는 텍스트로 추가</span>
           </div>
           <div class="field">
-            <label class="field__label" for="f-agenda_md">안건</label>
-            <textarea id="f-agenda_md" placeholder="## 안건&#10;- 첫 번째 안건&#10;- 두 번째 안건"></textarea>
-            <span class="field__hint">마크다운 지원: ## 헤더, **굵게**, - 리스트, `코드`</span>
+            <label class="field__label">안건</label>
+            <div class="quick-list" id="f-agenda-list"></div>
+            <div class="quick-add">
+              <input type="text" id="f-agenda-input" placeholder="안건 한 줄 입력 후 Enter" />
+              <button type="button" id="f-agenda-add" class="btn btn--primary btn--sm">+ 추가</button>
+            </div>
           </div>
           <div class="field">
-            <label class="field__label" for="f-decisions_md">결정사항</label>
-            <textarea id="f-decisions_md" placeholder="## 결정사항&#10;- 결정 1&#10;- 결정 2"></textarea>
+            <label class="field__label">결정사항</label>
+            <div class="quick-list" id="f-decisions-list"></div>
+            <div class="quick-add">
+              <input type="text" id="f-decisions-input" placeholder="결정 한 줄 입력 후 Enter" />
+              <button type="button" id="f-decisions-add" class="btn btn--primary btn--sm">+ 추가</button>
+            </div>
           </div>
           <div class="field">
-            <label class="field__label" for="f-actions_md">액션아이템</label>
-            <textarea id="f-actions_md" class="field__actions" placeholder="- [ ] 곽은지: 5/15까지 ConfEx 운영사 리스트업&#10;- [x] 이미 완료된 일"></textarea>
-            <span class="field__hint">체크박스 형식: <code>- [ ]</code> 미완료 / <code>- [x]</code> 완료. 완료율 KPI에 자동 집계됩니다.</span>
+            <label class="field__label">액션아이템</label>
+            <div class="quick-list" id="f-actions-list"></div>
+            <div class="action-add">
+              <select id="f-action-owner" aria-label="담당자"></select>
+              <input type="text" id="f-action-text" placeholder="할 일" />
+              <input type="date" id="f-action-due" aria-label="마감일" />
+              <button type="button" id="f-action-add" class="btn btn--primary btn--sm">+ 추가</button>
+            </div>
+            <span class="field__hint">담당자·할 일·마감일 입력 → +추가 / 좌측 ☐ 클릭으로 완료 토글</span>
           </div>
           <div class="field">
             <label class="field__label" for="f-note_md">비고</label>
-            <textarea id="f-note_md" placeholder="추가 메모"></textarea>
+            <textarea id="f-note_md" placeholder="자유 메모 (선택)"></textarea>
           </div>
         </form>
       </div>
@@ -1759,7 +2053,75 @@ window.STANDALONE_SAMPLE = {
 (function (global) {
   'use strict';
   var STORAGE_KEY_THEME = 'jc-meeting-dashboard:theme';
-  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null };
+  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], decisions: [], actions: [] } };
+
+  /* ===== Modal quick-add: parsing, rendering, serialization ===== */
+  function parseAgendaList(md) {
+    if (!md) return [];
+    return md.split('\n').map(function (l) {
+      var m = l.match(/^\s*-\s+(.+)$/);
+      if (!m) return null;
+      var text = m[1].trim();
+      if (/^\[[\sxX]\]/.test(text)) return null;
+      return text;
+    }).filter(Boolean);
+  }
+  function parseActionList(md) {
+    if (!md) return [];
+    return md.split('\n').map(function (line) {
+      var m = line.match(/^\s*-\s+\[([\sxX])\]\s+(.+)$/);
+      if (!m) return null;
+      var done = /[xX]/.test(m[1]);
+      var rest = m[2];
+      var dueMatch = rest.match(/\s*\(~([^)]+)\)\s*$/);
+      var due = '';
+      if (dueMatch) { due = dueMatch[1].trim(); rest = rest.slice(0, dueMatch.index).trim(); }
+      var ownerMatch = rest.match(/^([^:]+):\s*(.+)$/);
+      if (ownerMatch) return { owner: ownerMatch[1].trim(), text: ownerMatch[2].trim(), due: due, done: done };
+      return { owner: '', text: rest, due: due, done: done };
+    }).filter(Boolean);
+  }
+  function serializeAgenda(label, items) {
+    if (!items || items.length === 0) return '';
+    return '## ' + label + '\n' + items.map(function (t) { return '- ' + t; }).join('\n');
+  }
+  function serializeActions(actions) {
+    if (!actions || actions.length === 0) return '';
+    return actions.map(function (a) {
+      var prefix = a.done ? '- [x] ' : '- [ ] ';
+      var owner = a.owner ? a.owner + ': ' : '';
+      var due = a.due ? ' (~' + a.due + ')' : '';
+      return prefix + owner + a.text + due;
+    }).join('\n');
+  }
+  function renderAgendaQuickList() {
+    var el = $('f-agenda-list'); if (!el) return;
+    el.innerHTML = state.modal.agenda.map(function (t, i) {
+      return '<div class="quick-item"><span class="quick-item__text">' + MiniMarkdown.escapeHtml(t) + '</span>' +
+        '<button type="button" class="quick-item__remove" data-remove-agenda="' + i + '" aria-label="삭제">×</button></div>';
+    }).join('');
+  }
+  function renderDecisionsQuickList() {
+    var el = $('f-decisions-list'); if (!el) return;
+    el.innerHTML = state.modal.decisions.map(function (t, i) {
+      return '<div class="quick-item"><span class="quick-item__text">' + MiniMarkdown.escapeHtml(t) + '</span>' +
+        '<button type="button" class="quick-item__remove" data-remove-decisions="' + i + '" aria-label="삭제">×</button></div>';
+    }).join('');
+  }
+  function renderActionsQuickList() {
+    var el = $('f-actions-list'); if (!el) return;
+    el.innerHTML = state.modal.actions.map(function (a, i) {
+      var dueHtml = a.due ? '<span class="action-item__due">~' + MiniMarkdown.escapeHtml(a.due) + '</span>' : '';
+      var ownerHtml = a.owner ? '<span class="action-item__owner">' + MiniMarkdown.escapeHtml(a.owner) + '</span>' : '';
+      return '<div class="action-item' + (a.done ? ' is-done' : '') + '">' +
+        '<span class="action-item__check' + (a.done ? ' is-done' : '') + '" data-toggle-action="' + i + '">' + (a.done ? '✓' : '') + '</span>' +
+        ownerHtml +
+        '<span class="action-item__text">' + MiniMarkdown.escapeHtml(a.text) + '</span>' +
+        dueHtml +
+        '<button type="button" class="quick-item__remove" data-remove-action="' + i + '" aria-label="삭제">×</button>' +
+      '</div>';
+    }).join('');
+  }
   function $(id) { return document.getElementById(id); }
 
   function fetchAllRows(config) {
@@ -1891,6 +2253,7 @@ window.STANDALONE_SAMPLE = {
     var proj = $('f-project_tag');
     var dept = $('f-department');
     var auth = $('f-author');
+    var actionOwner = $('f-action-owner');
     if (!proj || !auth || !dept) return;
     function opts(items) {
       return items.map(function (v) {
@@ -1900,6 +2263,7 @@ window.STANDALONE_SAMPLE = {
     proj.innerHTML = opts(config.projects || ['기타']);
     dept.innerHTML = '<option value="">(선택 안 함)</option>' + opts(config.departments || []);
     auth.innerHTML = opts((config.team && config.team.members) || []);
+    if (actionOwner) actionOwner.innerHTML = '<option value="">담당자</option>' + opts((config.team && config.team.members) || []);
     populateAttendeePicker(config);
   }
 
@@ -1995,9 +2359,16 @@ window.STANDALONE_SAMPLE = {
     $('f-project_tag').value = row ? (row.project_tag || defaultProj) : defaultProj;
     $('f-author').value = row ? (row.author || defaultAuthor) : defaultAuthor;
     setAttendeesFromText(row ? (row.attendees || '') : ((state.config.team && state.config.team.members) || []).join(', '));
-    $('f-agenda_md').value = row ? (row.agenda_md || '') : '## 안건\n- ';
-    $('f-decisions_md').value = row ? (row.decisions_md || '') : '## 결정사항\n- ';
-    $('f-actions_md').value = row ? (row.actions_md || '') : '- [ ] ';
+    state.modal.agenda = row ? parseAgendaList(row.agenda_md) : [];
+    state.modal.decisions = row ? parseAgendaList(row.decisions_md) : [];
+    state.modal.actions = row ? parseActionList(row.actions_md) : [];
+    renderAgendaQuickList();
+    renderDecisionsQuickList();
+    renderActionsQuickList();
+    $('f-agenda-input').value = '';
+    $('f-decisions-input').value = '';
+    $('f-action-text').value = '';
+    $('f-action-due').value = '';
     $('f-note_md').value = row ? (row.note_md || '') : '';
     $('modal-overlay').hidden = false;
     setTimeout(function () { $('f-title').focus(); }, 50);
@@ -2020,9 +2391,9 @@ window.STANDALONE_SAMPLE = {
       department: $('f-department').value,
       author: $('f-author').value,
       attendees: collectAttendeesText(),
-      agenda_md: $('f-agenda_md').value,
-      decisions_md: $('f-decisions_md').value,
-      actions_md: $('f-actions_md').value,
+      agenda_md: serializeAgenda('안건', state.modal.agenda),
+      decisions_md: serializeAgenda('결정사항', state.modal.decisions),
+      actions_md: serializeActions(state.modal.actions),
       next_meeting: $('f-next_meeting').value,
       note_md: $('f-note_md').value
     };
@@ -2110,6 +2481,82 @@ window.STANDALONE_SAMPLE = {
     });
     $('f-department').addEventListener('change', function (e) {
       updateProjectOptions(e.target.value);
+    });
+
+    // Quick-add: agenda
+    function addAgenda() {
+      var v = $('f-agenda-input').value.trim();
+      if (!v) return;
+      state.modal.agenda.push(v);
+      $('f-agenda-input').value = '';
+      renderAgendaQuickList();
+      $('f-agenda-input').focus();
+    }
+    $('f-agenda-add').addEventListener('click', addAgenda);
+    $('f-agenda-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); addAgenda(); }
+    });
+    $('f-agenda-list').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-remove-agenda]');
+      if (b) {
+        state.modal.agenda.splice(parseInt(b.dataset.removeAgenda, 10), 1);
+        renderAgendaQuickList();
+      }
+    });
+
+    // Quick-add: decisions
+    function addDecision() {
+      var v = $('f-decisions-input').value.trim();
+      if (!v) return;
+      state.modal.decisions.push(v);
+      $('f-decisions-input').value = '';
+      renderDecisionsQuickList();
+      $('f-decisions-input').focus();
+    }
+    $('f-decisions-add').addEventListener('click', addDecision);
+    $('f-decisions-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); addDecision(); }
+    });
+    $('f-decisions-list').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-remove-decisions]');
+      if (b) {
+        state.modal.decisions.splice(parseInt(b.dataset.removeDecisions, 10), 1);
+        renderDecisionsQuickList();
+      }
+    });
+
+    // Quick-add: actions
+    function addAction() {
+      var text = $('f-action-text').value.trim();
+      if (!text) { $('f-action-text').focus(); return; }
+      state.modal.actions.push({
+        owner: $('f-action-owner').value || '',
+        text: text,
+        due: $('f-action-due').value || '',
+        done: false
+      });
+      $('f-action-text').value = '';
+      $('f-action-due').value = '';
+      renderActionsQuickList();
+      $('f-action-text').focus();
+    }
+    $('f-action-add').addEventListener('click', addAction);
+    $('f-action-text').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); addAction(); }
+    });
+    $('f-actions-list').addEventListener('click', function (e) {
+      var rem = e.target.closest('[data-remove-action]');
+      if (rem) {
+        state.modal.actions.splice(parseInt(rem.dataset.removeAction, 10), 1);
+        renderActionsQuickList();
+        return;
+      }
+      var tog = e.target.closest('[data-toggle-action]');
+      if (tog) {
+        var idx = parseInt(tog.dataset.toggleAction, 10);
+        state.modal.actions[idx].done = !state.modal.actions[idx].done;
+        renderActionsQuickList();
+      }
     });
     var kpiCard = $('kpi-meetings-card');
     if (kpiCard) {

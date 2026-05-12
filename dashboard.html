@@ -2422,13 +2422,29 @@ window.STANDALONE_SAMPLE = {
       var saved = LocalStore.upsert(row);
       if (!saved) { toast('저장 실패 — localStorage 용량 초과 가능성', 4000); return; }
       console.log('[saveModal] saved, LocalStore count:', LocalStore.list().length);
-      closeModal();
+
+      // 즉시 상태 반영 — reload 비동기를 기다리지 않음
+      var existingIdx = -1;
+      for (var i = 0; i < state.rows.length; i++) {
+        if (state.rows[i]._id === saved._id) { existingIdx = i; break; }
+      }
+      if (existingIdx >= 0) state.rows[existingIdx] = saved;
+      else state.rows.push(saved);
+
       state.selectedKey = MeetingRender.rowKey(saved);
-      reload();
-      toast(id ? '수정되었습니다' : '저장되었습니다', 2500);
+      closeModal();
+      populateWeekSelect();
+      renderAll();
+
+      // 백그라운드로 시트 동기화 (있으면)
+      if (state.config && state.config.sheet && state.config.sheet.id) {
+        setTimeout(reload, 100);
+      }
+
+      toast((id ? '수정됨' : '저장됨') + ' · 로컬 ' + LocalStore.list().length + '건 · 부서: ' + dept, 3000);
     } catch (e) {
       console.error('[saveModal] error:', e);
-      toast('저장 중 오류: ' + e.message, 5000);
+      toast('저장 오류: ' + e.message, 5000);
     }
   }
 

@@ -519,6 +519,13 @@ body {
 .quick-item__remove:hover { color: var(--danger); background: rgba(220,38,38,0.08); }
 .quick-add { display: flex; gap: 8px; align-items: center; }
 .quick-add input { flex: 1; }
+.quick-add--sub { margin: 4px 0 8px 28px; }
+.quick-item--sub {
+  margin-left: 28px; background: var(--bg); border: 1px dashed var(--border);
+  font-size: 12.5px;
+}
+.quick-item--sub .quick-item__text { color: var(--text-muted); }
+.quick-item .btn { flex-shrink: 0; }
 .action-add { display: grid; grid-template-columns: 130px 1fr 140px auto; gap: 6px; align-items: center; }
 .action-add select, .action-add input { width: 100%; }
 @media (max-width: 640px) {
@@ -797,33 +804,7 @@ body {
       <div class="sec-title"><span class="sec-title__bar"></span>금주 핵심 일정 (D-day)</div>
       <span class="sec-tag">자동 집계 · 회의록 액션 마감일 기반</span>
     </div>
-    <div class="dday-strip__cards" id="dday-cards">
-      <div class="dday-card dday-card--urgent">
-        <div class="dday-card__d">D-7</div>
-        <div class="dday-card__title">번역원 30주년 76번지 발주</div>
-        <div class="dday-card__sub">5/18 (월) · 21일 오전 수령 기준</div>
-      </div>
-      <div class="dday-card dday-card--urgent">
-        <div class="dday-card__d">D-7</div>
-        <div class="dday-card__title">센트릭 1차 명단 전달</div>
-        <div class="dday-card__sub">5/18 (월) · 명찰·명패 출력용</div>
-      </div>
-      <div class="dday-card dday-card--warn">
-        <div class="dday-card__d">D-10</div>
-        <div class="dday-card__title">번역원 30주년 기념식</div>
-        <div class="dday-card__sub">5/21 (목)</div>
-      </div>
-      <div class="dday-card dday-card--warn">
-        <div class="dday-card__d">D-16</div>
-        <div class="dday-card__title">투비소프트 그랜드 세미나</div>
-        <div class="dday-card__sub">5/27 (수) · 등록 256명</div>
-      </div>
-      <div class="dday-card dday-card--info">
-        <div class="dday-card__d">D-17</div>
-        <div class="dday-card__title">KTO 비즈데이</div>
-        <div class="dday-card__sub">5/28 (목) · 22개 기업 상담</div>
-      </div>
-    </div>
+    <div class="dday-strip__cards" id="dday-cards"></div>
   </section>
 
   <section class="biz-section" aria-label="프로젝트 라이프사이클">
@@ -908,191 +889,9 @@ body {
         <div class="sec-title"><span class="sec-title__bar"></span>파트별 주간 핵심 과업</div>
         <div class="sec-desc">2026-05-11 주간회의 기준 · 진행 프로젝트·결정·액션 요약</div>
       </div>
-      <span class="sec-tag">6개 파트</span>
+      <span class="sec-tag" id="parts-tag">자동 집계</span>
     </div>
-    <div class="parts-grid">
-
-      <div class="part-card" data-dept="MICE 기획팀">
-        <div class="part-card__head">
-          <span class="part-card__badge">MICE 기획팀</span>
-          <div class="part-card__name">기획1파트</div>
-          <div class="part-card__lead">정은용 과장 · 3인</div>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">5</span></div>
-          <ul>
-            <li>번역원 글로벌 문학포럼 (7월)</li>
-            <li>KTO 비즈데이 (5/28)</li>
-            <li>제100차 한국관광학회 학술대회</li>
-            <li>공공 AI 정책워크숍 (5/18~21)</li>
-            <li>부탄 Study Visit (~5/12)</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">주요 액션 <span class="part-card__label-count">3</span></div>
-          <ul>
-            <li>연사 3인 항공권 확정</li>
-            <li>KTO 만족도조사·시나리오</li>
-            <li>관광학회 세션 사유 금주 전달</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="part-card" data-dept="MICE 기획팀">
-        <div class="part-card__head">
-          <span class="part-card__badge">MICE 기획팀</span>
-          <div class="part-card__name">기획2파트</div>
-          <div class="part-card__lead">임혜전 과장 · 3인</div>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">5</span></div>
-          <ul>
-            <li>번역원 30주년 기념식 (5/21) <strong>D-10</strong></li>
-            <li>투비소프트 그랜드세미나 (5/27)</li>
-            <li>옥타브 (6/25)</li>
-            <li>러닝페스티벌 (7/24~25)</li>
-            <li>메가인포 (6/25)</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">주요 액션 <span class="part-card__label-count">4</span></div>
-          <ul>
-            <li>번역원 30주년 SNS 이벤트 (~수)</li>
-            <li>번역원 30주년 식수 발주 (~5/12)</li>
-            <li>러닝페스티벌 코엑스 대관 (~5/12)</li>
-            <li>러닝페스티벌 5/19 기술협상</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">결정사항 <span class="part-card__label-count">1</span></div>
-          <ul>
-            <li>번역원 30주년: 셀프 세팅 + 종이명패 5/14 발주</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="part-card" data-dept="MICE 기획팀">
-        <div class="part-card__head">
-          <span class="part-card__badge">MICE 기획팀</span>
-          <div class="part-card__name">구매·섭외파트</div>
-          <div class="part-card__lead">이효원 주임 · 1인</div>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">진행 업무 <span class="part-card__label-count">2</span></div>
-          <ul>
-            <li>KTO 비즈데이 셔틀버스·차량 등록</li>
-            <li>제작물 발주 관리 (다수 프로젝트)</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">주요 액션 <span class="part-card__label-count">2</span></div>
-          <ul>
-            <li>KTO 셔틀버스 차량번호 (5/26 오전)</li>
-            <li>KTO 차량 사전등록 일괄</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="part-card" data-dept="신사업 기획팀">
-        <div class="part-card__head">
-          <span class="part-card__badge">신사업 기획팀</span>
-          <div class="part-card__name">신사업파트</div>
-          <div class="part-card__lead">김정길 과장 · 5인</div>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">5</span></div>
-          <ul>
-            <li>리멤버 협업 (8건 견적·decision makers 150)</li>
-            <li>RMB REBUILD26 결과보고</li>
-            <li>RMB 센트릭 RSVP (5/21)</li>
-            <li>MiceConfigurator v3.4</li>
-            <li>IUCR 2032 유치제안서</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">주요 액션 <span class="part-card__label-count">5</span></div>
-          <ul>
-            <li>ConfEx 운영사 리스트업 (~5/15)</li>
-            <li>리멤버 DB 의사결정자 비율 분석 (~5/16)</li>
-            <li>베뉴 DB 30개 확장 (~5/20)</li>
-            <li>LOGIC_SPEC v1.1 초안 (~5/18)</li>
-            <li>리멤버×MnC 차주 사업계획 PT</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">결정사항 <span class="part-card__label-count">2</span></div>
-          <ul>
-            <li>자동 가격 산출 엔진을 v3.4 최우선 과제</li>
-            <li>ConfEx 박람회 수주 TF 리드: 곽은지 대리</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="part-card" data-dept="콘텐츠기획팀">
-        <div class="part-card__head">
-          <span class="part-card__badge">콘텐츠기획팀</span>
-          <div class="part-card__name">콘텐츠 제작</div>
-          <div class="part-card__lead">서석민 대리 · 3인</div>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">진행 프로젝트 <span class="part-card__label-count">6</span></div>
-          <ul>
-            <li>번역원 30주년 제작물 발주</li>
-            <li>KTO 비즈데이 키비주얼·제작물</li>
-            <li>옥타브 키비주얼·랜딩</li>
-            <li>공공 AI 정책워크숍 키비주얼·발표자료</li>
-            <li>APOTC 2028 키비주얼</li>
-            <li>회사소개서 중철제본</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">주요 액션 <span class="part-card__label-count">4</span></div>
-          <ul>
-            <li>5/12 회사소개서 중철제본 발주</li>
-            <li>5/15 옥타브 키비주얼 시안 2종</li>
-            <li>5/20 옥타브 랜딩 초안</li>
-            <li>인공지능 교육 컨퍼런스 키비주얼 5/11 공유</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">결정사항 <span class="part-card__label-count">1</span></div>
-          <ul>
-            <li>호텔 나루 답사 5/29 15:00 (갤러리·나루볼룸)</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="part-card" data-dept="경영지원팀">
-        <div class="part-card__head">
-          <span class="part-card__badge">경영지원팀</span>
-          <div class="part-card__name">경영지원</div>
-          <div class="part-card__lead">김현정 과장 · 2인</div>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">진행 업무 <span class="part-card__label-count">3</span></div>
-          <ul>
-            <li>선금·잔금 정산 (메타버스·번역원 등)</li>
-            <li>세무 (원천세·영수증)</li>
-            <li>인사·복리후생</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">주요 액션 <span class="part-card__label-count">3</span></div>
-          <ul>
-            <li class="is-done">4월 원천세 신고 완료</li>
-            <li>메타버스 선금 신청</li>
-            <li>번역원 글로벌 문학포럼 선금 신청</li>
-          </ul>
-        </div>
-        <div class="part-card__section">
-          <div class="part-card__label">결정사항 <span class="part-card__label-count">1</span></div>
-          <ul>
-            <li>수기 영수증 업로드 오류 → 분실 처리 절차 가이드 확정</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
+    <div class="parts-grid" id="parts-grid"></div>
   </section>
 
   <section class="biz-section" aria-label="매뉴얼 작성 진척">
@@ -1720,6 +1519,143 @@ window.STANDALONE_SAMPLE = {
   global.LocalStore = { list: list, upsert: upsert, remove: remove, clear: clear, importJson: importJson, exportJson: exportJson };
 })(window);
 
+/* ====== AutoSections — 회의록 데이터에서 D-day·파트별 카드·KPI 자동 집계 ====== */
+(function (global) {
+  'use strict';
+  function escapeHtml(s) { return global.MiniMarkdown.escapeHtml(s); }
+
+  function parseDueDate(text) {
+    if (!text) return null;
+    var s = String(text).trim();
+    if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) {
+      var d = new Date(s); return isNaN(d.getTime()) ? null : d;
+    }
+    var m = s.match(/(\d{1,2})\s*\/\s*(\d{1,2})/) || s.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+    if (m) {
+      var d2 = new Date(new Date().getFullYear(), parseInt(m[1], 10) - 1, parseInt(m[2], 10));
+      return isNaN(d2.getTime()) ? null : d2;
+    }
+    return null;
+  }
+  function ddayBetween(due, today) {
+    var d1 = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+    var d2 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return Math.round((d1 - d2) / 86400000);
+  }
+  function extractActions(row) {
+    if (!row.actions_md) return [];
+    return String(row.actions_md).split('\n').map(function (line) {
+      var m = line.match(/^\s*-\s+\[([\sxX])\]\s+(.+)$/);
+      if (!m) return null;
+      var done = /[xX]/.test(m[1]);
+      var rest = m[2];
+      var dueMatch = rest.match(/\(~\s*([^)]+?)\s*\)/);
+      var dueText = dueMatch ? dueMatch[1] : '';
+      if (dueMatch) rest = rest.replace(/\s*\(~[^)]+\)/, '').trim();
+      var ownerMatch = rest.match(/^([^:]+):\s*(.+)$/);
+      return {
+        owner: ownerMatch ? ownerMatch[1].trim() : '',
+        text: ownerMatch ? ownerMatch[2].trim() : rest,
+        dueText: dueText, due: parseDueDate(dueText), done: done
+      };
+    }).filter(Boolean);
+  }
+  function extractListItems(md) {
+    if (!md) return [];
+    return md.split('\n').map(function (l) {
+      var m = l.match(/^-\s+(.+)$/);
+      if (!m) return null;
+      var t = m[1].trim();
+      if (/^\[[\sxX]\]/.test(t)) return null;
+      return t;
+    }).filter(Boolean);
+  }
+  function renderDDayCards(rows, container, maxItems) {
+    if (!container) return;
+    var today = new Date();
+    var items = [];
+    rows.forEach(function (row) {
+      extractActions(row).forEach(function (a) {
+        if (a.done || !a.due) return;
+        var dday = ddayBetween(a.due, today);
+        if (dday < 0 || dday > 60) return;
+        items.push({
+          dday: dday, owner: a.owner, text: a.text, dueText: a.dueText,
+          dept: row.department || '', project: row.project_tag || ''
+        });
+      });
+    });
+    items.sort(function (a, b) { return a.dday - b.dday; });
+    items = items.slice(0, maxItems || 6);
+    if (items.length === 0) {
+      container.innerHTML = '<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">마감 임박 액션이 없습니다. 회의록 액션에 (~5/15) 형식으로 마감일 추가하면 자동 표시됩니다.</div>';
+      return;
+    }
+    container.innerHTML = items.map(function (it) {
+      var cls = it.dday <= 3 ? 'dday-card--urgent' : (it.dday <= 14 ? 'dday-card--warn' : 'dday-card--info');
+      var title = (it.owner ? it.owner + ': ' : '') + it.text;
+      var sub = '마감 ' + escapeHtml(it.dueText || '') + (it.project ? ' · ' + escapeHtml(it.project) : '');
+      return '<div class="dday-card ' + cls + '">' +
+        '<div class="dday-card__d">D-' + it.dday + '</div>' +
+        '<div class="dday-card__title">' + escapeHtml(title) + '</div>' +
+        '<div class="dday-card__sub">' + sub + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  function sectionHtml(label, count, items) {
+    return '<div class="part-card__section">' +
+      '<div class="part-card__label">' + escapeHtml(label) + ' <span class="part-card__label-count">' + count + '</span></div>' +
+      '<ul>' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>' +
+    '</div>';
+  }
+  function renderPartCards(rows, config, container) {
+    if (!container) return;
+    var depts = (config.departments || []).filter(function (d) { return d !== '전체(주간회의)'; });
+    var html = '';
+    depts.forEach(function (dept) {
+      var deptRows = rows.filter(function (r) { return r.department === dept; });
+      if (deptRows.length === 0) return;
+      var projects = {};
+      var actions = [];
+      var decisions = [];
+      deptRows.forEach(function (r) {
+        if (r.project_tag) projects[r.project_tag] = true;
+        extractActions(r).forEach(function (a) { if (!a.done) actions.push(a); });
+        extractListItems(r.decisions_md).forEach(function (d) { decisions.push(d); });
+      });
+      var projList = Object.keys(projects).filter(function (p) { return p; });
+      var actionsList = actions.slice(0, 5);
+      var decsList = decisions.slice(0, 3);
+      var members = (config.team && config.team.dept_members && config.team.dept_members[dept]) || [];
+      var leadName = members[0] || '';
+      var memberCount = members.length;
+      html += '<div class="part-card" data-dept="' + escapeHtml(dept) + '">' +
+        '<div class="part-card__head">' +
+          '<span class="part-card__badge">' + escapeHtml(dept) + '</span>' +
+          '<div class="part-card__lead">' + (leadName ? escapeHtml(leadName) + ' · ' + memberCount + '인' : '') + '</div>' +
+        '</div>' +
+        (projList.length > 0 ? sectionHtml('진행 프로젝트', projList.length, projList.map(escapeHtml)) : '') +
+        (actionsList.length > 0 ? sectionHtml('주요 액션 (미해결)', actionsList.length, actionsList.map(function (a) {
+          return (a.owner ? '<strong>' + escapeHtml(a.owner) + '</strong>: ' : '') + escapeHtml(a.text) +
+            (a.dueText ? ' <span style="color:var(--text-muted)">(~' + escapeHtml(a.dueText) + ')</span>' : '');
+        })) : '') +
+        (decsList.length > 0 ? sectionHtml('결정사항', decsList.length, decsList.map(escapeHtml)) : '') +
+      '</div>';
+    });
+    container.innerHTML = html || '<div style="grid-column:1/-1;padding:30px;text-align:center;color:var(--text-muted);font-size:13px;">파트별 과업이 없습니다. 회의록을 작성하면 부서별로 자동 집계됩니다.</div>';
+  }
+  function computeProjectCount(rows) {
+    var seen = {};
+    rows.forEach(function (r) { if (r.project_tag && r.project_tag !== '기타') seen[r.project_tag] = true; });
+    return Object.keys(seen).length;
+  }
+  global.AutoSections = {
+    renderDDayCards: renderDDayCards,
+    renderPartCards: renderPartCards,
+    computeProjectCount: computeProjectCount
+  };
+})(window);
+
 /* ====== InternalSource — 사내 시스템 프로젝트 진행현황 연동 슬롯 ======
  * 사내 TMS·ERP 등에서 프로젝트 진행현황을 받아 상세 패널·KPI에 통합 표시하기 위한 인터페이스.
  * 현재는 슬롯과 어댑터 인터페이스만 정의. 실제 사내 시스템 스펙 확인 후 구체 어댑터 구현 예정.
@@ -2055,18 +1991,31 @@ window.STANDALONE_SAMPLE = {
 (function (global) {
   'use strict';
   var STORAGE_KEY_THEME = 'jc-meeting-dashboard:theme';
-  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], decisions: [], actions: [] } };
+  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], decisions: [], actions: [], agendaSubOpen: -1, decisionsSubOpen: -1 } };
 
   /* ===== Modal quick-add: parsing, rendering, serialization ===== */
   function parseAgendaList(md) {
     if (!md) return [];
-    return md.split('\n').map(function (l) {
-      var m = l.match(/^\s*-\s+(.+)$/);
-      if (!m) return null;
-      var text = m[1].trim();
-      if (/^\[[\sxX]\]/.test(text)) return null;
-      return text;
-    }).filter(Boolean);
+    var lines = md.split('\n');
+    var result = [];
+    var lastParent = null;
+    lines.forEach(function (line) {
+      var indented = /^(\s+)-\s+(.+)$/.exec(line);
+      if (indented && lastParent) {
+        var st = indented[2].trim();
+        if (/^\[[\sxX]\]/.test(st)) return;
+        lastParent.children.push(st);
+        return;
+      }
+      var top = /^-\s+(.+)$/.exec(line);
+      if (top) {
+        var t = top[1].trim();
+        if (/^\[[\sxX]\]/.test(t)) return;
+        lastParent = { text: t, children: [] };
+        result.push(lastParent);
+      }
+    });
+    return result;
   }
   function parseActionList(md) {
     if (!md) return [];
@@ -2085,7 +2034,13 @@ window.STANDALONE_SAMPLE = {
   }
   function serializeAgenda(label, items) {
     if (!items || items.length === 0) return '';
-    return '## ' + label + '\n' + items.map(function (t) { return '- ' + t; }).join('\n');
+    var lines = ['## ' + label];
+    items.forEach(function (item) {
+      if (typeof item === 'string') { lines.push('- ' + item); return; }
+      lines.push('- ' + item.text);
+      (item.children || []).forEach(function (c) { lines.push('  - ' + c); });
+    });
+    return lines.join('\n');
   }
   function serializeActions(actions) {
     if (!actions || actions.length === 0) return '';
@@ -2096,19 +2051,37 @@ window.STANDALONE_SAMPLE = {
       return prefix + owner + a.text + due;
     }).join('\n');
   }
-  function renderAgendaQuickList() {
-    var el = $('f-agenda-list'); if (!el) return;
-    el.innerHTML = state.modal.agenda.map(function (t, i) {
-      return '<div class="quick-item"><span class="quick-item__text">' + MiniMarkdown.escapeHtml(t) + '</span>' +
-        '<button type="button" class="quick-item__remove" data-remove-agenda="' + i + '" aria-label="삭제">×</button></div>';
+  function renderTreeQuickList(elId, items, removeKey, removeSubKey, toggleKey, addSubKey, subInputKey, openSubIdx) {
+    var el = $(elId); if (!el) return;
+    el.innerHTML = items.map(function (item, i) {
+      var children = (item.children || []).map(function (c, ci) {
+        return '<div class="quick-item quick-item--sub">' +
+          '<span class="quick-item__text">' + MiniMarkdown.escapeHtml(c) + '</span>' +
+          '<button type="button" class="quick-item__remove" data-' + removeSubKey + '="' + i + ':' + ci + '" aria-label="삭제">×</button>' +
+        '</div>';
+      }).join('');
+      var subAdd = openSubIdx === i
+        ? '<div class="quick-add quick-add--sub">' +
+            '<input type="text" placeholder="하위 항목 입력 후 Enter" data-' + subInputKey + '="' + i + '" />' +
+            '<button type="button" class="btn btn--primary btn--sm" data-' + addSubKey + '="' + i + '">추가</button>' +
+          '</div>'
+        : '';
+      return '<div class="quick-item">' +
+          '<span class="quick-item__text"><strong>' + MiniMarkdown.escapeHtml(item.text) + '</strong></span>' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-' + toggleKey + '="' + i + '">' + (openSubIdx === i ? '닫기' : '+ 하위') + '</button>' +
+          '<button type="button" class="quick-item__remove" data-' + removeKey + '="' + i + '" aria-label="삭제">×</button>' +
+        '</div>' + children + subAdd;
     }).join('');
   }
+  function renderAgendaQuickList() {
+    renderTreeQuickList('f-agenda-list', state.modal.agenda,
+      'remove-agenda', 'remove-agenda-sub', 'toggle-agenda-sub', 'add-agenda-sub', 'sub-input-agenda',
+      state.modal.agendaSubOpen);
+  }
   function renderDecisionsQuickList() {
-    var el = $('f-decisions-list'); if (!el) return;
-    el.innerHTML = state.modal.decisions.map(function (t, i) {
-      return '<div class="quick-item"><span class="quick-item__text">' + MiniMarkdown.escapeHtml(t) + '</span>' +
-        '<button type="button" class="quick-item__remove" data-remove-decisions="' + i + '" aria-label="삭제">×</button></div>';
-    }).join('');
+    renderTreeQuickList('f-decisions-list', state.modal.decisions,
+      'remove-decisions', 'remove-decisions-sub', 'toggle-decisions-sub', 'add-decisions-sub', 'sub-input-decisions',
+      state.modal.decisionsSubOpen);
   }
   function renderActionsQuickList() {
     var el = $('f-actions-list'); if (!el) return;
@@ -2181,6 +2154,19 @@ window.STANDALONE_SAMPLE = {
     var filtered = MeetingFilter.apply(rows, state.filter);
     var currentWeek = state.filter.week === 'all' ? MeetingFilter.currentWeekISO() : state.filter.week;
     MeetingRender.kpis(rows, currentWeek);
+    // 자동 섹션 갱신
+    if (window.AutoSections) {
+      AutoSections.renderDDayCards(rows, $('dday-cards'), 6);
+      AutoSections.renderPartCards(rows, state.config, $('parts-grid'));
+      var pjCount = AutoSections.computeProjectCount(rows);
+      if ($('kpi-projects')) $('kpi-projects').textContent = pjCount;
+      if ($('parts-tag')) {
+        var deptCount = (state.config.departments || []).filter(function (d) {
+          return d !== '전체(주간회의)' && rows.some(function (r) { return r.department === d; });
+        }).length;
+        $('parts-tag').textContent = deptCount + '개 부서 · 자동 집계';
+      }
+    }
     MeetingRender.departmentChips(state.config, rows, state.filter.department, function (dept) {
       state.filter.department = dept; state.selectedKey = null; renderAll();
     });
@@ -2364,6 +2350,8 @@ window.STANDALONE_SAMPLE = {
     state.modal.agenda = row ? parseAgendaList(row.agenda_md) : [];
     state.modal.decisions = row ? parseAgendaList(row.decisions_md) : [];
     state.modal.actions = row ? parseActionList(row.actions_md) : [];
+    state.modal.agendaSubOpen = -1;
+    state.modal.decisionsSubOpen = -1;
     renderAgendaQuickList();
     renderDecisionsQuickList();
     renderActionsQuickList();
@@ -2485,47 +2473,72 @@ window.STANDALONE_SAMPLE = {
       updateProjectOptions(e.target.value);
     });
 
-    // Quick-add: agenda
-    function addAgenda() {
-      var v = $('f-agenda-input').value.trim();
-      if (!v) return;
-      state.modal.agenda.push(v);
-      $('f-agenda-input').value = '';
-      renderAgendaQuickList();
-      $('f-agenda-input').focus();
-    }
-    $('f-agenda-add').addEventListener('click', addAgenda);
-    $('f-agenda-input').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); addAgenda(); }
-    });
-    $('f-agenda-list').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-remove-agenda]');
-      if (b) {
-        state.modal.agenda.splice(parseInt(b.dataset.removeAgenda, 10), 1);
-        renderAgendaQuickList();
+    function wireTree(name, list, listEl, inputEl, addBtn, render) {
+      function addTop() {
+        var v = inputEl.value.trim();
+        if (!v) return;
+        list.push({ text: v, children: [] });
+        inputEl.value = '';
+        render();
+        inputEl.focus();
       }
-    });
-
-    // Quick-add: decisions
-    function addDecision() {
-      var v = $('f-decisions-input').value.trim();
-      if (!v) return;
-      state.modal.decisions.push(v);
-      $('f-decisions-input').value = '';
-      renderDecisionsQuickList();
-      $('f-decisions-input').focus();
+      addBtn.addEventListener('click', addTop);
+      inputEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addTop(); }
+      });
+      listEl.addEventListener('click', function (e) {
+        var rem = e.target.closest('[data-remove-' + name + ']');
+        if (rem) { list.splice(parseInt(rem.getAttribute('data-remove-' + name), 10), 1); render(); return; }
+        var remSub = e.target.closest('[data-remove-' + name + '-sub]');
+        if (remSub) {
+          var parts = remSub.getAttribute('data-remove-' + name + '-sub').split(':');
+          var pi = parseInt(parts[0], 10); var ci = parseInt(parts[1], 10);
+          if (list[pi]) list[pi].children.splice(ci, 1);
+          render(); return;
+        }
+        var tog = e.target.closest('[data-toggle-' + name + '-sub]');
+        if (tog) {
+          var ti = parseInt(tog.getAttribute('data-toggle-' + name + '-sub'), 10);
+          var key = name === 'agenda' ? 'agendaSubOpen' : 'decisionsSubOpen';
+          state.modal[key] = (state.modal[key] === ti) ? -1 : ti;
+          render();
+          setTimeout(function () {
+            var subInput = listEl.querySelector('[data-sub-input-' + name + '="' + ti + '"]');
+            if (subInput) subInput.focus();
+          }, 0);
+          return;
+        }
+        var addSub = e.target.closest('[data-add-' + name + '-sub]');
+        if (addSub) {
+          var ai = parseInt(addSub.getAttribute('data-add-' + name + '-sub'), 10);
+          var subInputEl = listEl.querySelector('[data-sub-input-' + name + '="' + ai + '"]');
+          if (subInputEl && subInputEl.value.trim()) {
+            list[ai].children.push(subInputEl.value.trim());
+            render();
+            setTimeout(function () {
+              var ni = listEl.querySelector('[data-sub-input-' + name + '="' + ai + '"]');
+              if (ni) ni.focus();
+            }, 0);
+          }
+        }
+      });
+      listEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && e.target.matches('[data-sub-input-' + name + ']')) {
+          e.preventDefault();
+          var ai2 = parseInt(e.target.getAttribute('data-sub-input-' + name), 10);
+          if (e.target.value.trim()) {
+            list[ai2].children.push(e.target.value.trim());
+            render();
+            setTimeout(function () {
+              var ni = listEl.querySelector('[data-sub-input-' + name + '="' + ai2 + '"]');
+              if (ni) ni.focus();
+            }, 0);
+          }
+        }
+      });
     }
-    $('f-decisions-add').addEventListener('click', addDecision);
-    $('f-decisions-input').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); addDecision(); }
-    });
-    $('f-decisions-list').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-remove-decisions]');
-      if (b) {
-        state.modal.decisions.splice(parseInt(b.dataset.removeDecisions, 10), 1);
-        renderDecisionsQuickList();
-      }
-    });
+    wireTree('agenda', state.modal.agenda, $('f-agenda-list'), $('f-agenda-input'), $('f-agenda-add'), renderAgendaQuickList);
+    wireTree('decisions', state.modal.decisions, $('f-decisions-list'), $('f-decisions-input'), $('f-decisions-add'), renderDecisionsQuickList);
 
     // Quick-add: actions
     function addAction() {

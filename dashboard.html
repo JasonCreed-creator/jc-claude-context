@@ -598,6 +598,8 @@ body {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .kcard:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+.part-card__section li { transition: background-color 0.12s ease, color 0.12s ease; cursor: pointer; border-radius: 4px; }
+.part-card__section li:hover { background: var(--accent-soft); color: var(--accent-strong); }
 .kcard__title { font-size: 12.5px; font-weight: 600; color: var(--text); line-height: 1.35; }
 .kcard__meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .kcard__tag { display: inline-block; padding: 1px 7px; border-radius: var(--radius-sm); font-size: 10px; font-weight: 700; }
@@ -1259,8 +1261,8 @@ body {
           <div class="field">
             <label class="field__label">참석자 (클릭하여 선택)</label>
             <div class="attendee-picker" id="f-attendees-picker"></div>
-            <input type="text" id="f-attendees-extra" placeholder="외부 참석자 (콤마로 구분, 예: 주대웅 실장(리멤버))" />
-            <span class="field__hint">전사 19명 중 참석자 체크 + 외부 참석자는 텍스트로 추가</span>
+            <input type="hidden" id="f-attendees-extra" value="" />
+            <span class="field__hint">전사 19명 중 참석자를 칩으로 선택</span>
           </div>
           <div class="field">
             <label class="field__label">안건</label>
@@ -2570,6 +2572,27 @@ window.STANDALONE_SAMPLE = {
         toast('이번 주 회의록 ' + state.rows.filter(function (r) { return MeetingFilter.rowWeek(r) === state.filter.week; }).length + '건 표시', 2500);
       });
     }
+
+    // 칸반 카드 + 파트 카드 항목 클릭 → 프로젝트 키워드 매칭 → 회의록 필터링
+    document.addEventListener('click', function (e) {
+      var card = e.target.closest('.kcard, .part-card__section li');
+      if (!card) return;
+      if (e.target.closest('.attendee-pick, .quick-item__remove, .action-item__check')) return;
+      var text = card.textContent || '';
+      var projects = (state.config && state.config.projects) || [];
+      var matched = null;
+      for (var i = 0; i < projects.length; i++) {
+        if (text.indexOf(projects[i]) !== -1) { matched = projects[i]; break; }
+      }
+      if (!matched) return;
+      state.filter.project = matched;
+      state.selectedKey = null;
+      renderAll();
+      var listEl = document.querySelector('.content');
+      if (listEl) listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var hits = state.rows.filter(function (r) { return (r.project_tag || '기타') === matched; }).length;
+      toast('"' + matched + '" 관련 회의록 ' + hits + '건 표시', 2500);
+    });
     $('export-btn').addEventListener('click', exportLocal);
     $('import-btn').addEventListener('click', function () { $('import-file').click(); });
     $('import-file').addEventListener('change', function (e) {

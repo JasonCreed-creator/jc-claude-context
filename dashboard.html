@@ -2510,11 +2510,11 @@ window.STANDALONE_SAMPLE = {
       updateProjectOptions(e.target.value);
     });
 
-    function wireTree(name, list, listEl, inputEl, addBtn, render) {
+    function wireTree(name, getList, listEl, inputEl, addBtn, render) {
       function addTop() {
         var v = inputEl.value.trim();
         if (!v) return;
-        list.push({ text: v, children: [] });
+        getList().push({ text: v, children: [] });
         inputEl.value = '';
         render();
         inputEl.focus();
@@ -2524,6 +2524,7 @@ window.STANDALONE_SAMPLE = {
         if (e.key === 'Enter') { e.preventDefault(); addTop(); }
       });
       listEl.addEventListener('click', function (e) {
+        var list = getList();
         var rem = e.target.closest('[data-remove-' + name + ']');
         if (rem) { list.splice(parseInt(rem.getAttribute('data-remove-' + name), 10), 1); render(); return; }
         var remSub = e.target.closest('[data-remove-' + name + '-sub]');
@@ -2537,7 +2538,7 @@ window.STANDALONE_SAMPLE = {
         if (addSub) {
           var ai = parseInt(addSub.getAttribute('data-add-' + name + '-sub'), 10);
           var subInputEl = listEl.querySelector('[data-sub-input-' + name + '="' + ai + '"]');
-          if (subInputEl && subInputEl.value.trim()) {
+          if (subInputEl && subInputEl.value.trim() && list[ai]) {
             list[ai].children.push(subInputEl.value.trim());
             render();
             setTimeout(function () {
@@ -2550,8 +2551,9 @@ window.STANDALONE_SAMPLE = {
       listEl.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && e.target.matches('[data-sub-input-' + name + ']')) {
           e.preventDefault();
+          var list = getList();
           var ai2 = parseInt(e.target.getAttribute('data-sub-input-' + name), 10);
-          if (e.target.value.trim()) {
+          if (e.target.value.trim() && list[ai2]) {
             list[ai2].children.push(e.target.value.trim());
             render();
             setTimeout(function () {
@@ -2562,8 +2564,8 @@ window.STANDALONE_SAMPLE = {
         }
       });
     }
-    wireTree('agenda', state.modal.agenda, $('f-agenda-list'), $('f-agenda-input'), $('f-agenda-add'), renderAgendaQuickList);
-    wireTree('decisions', state.modal.decisions, $('f-decisions-list'), $('f-decisions-input'), $('f-decisions-add'), renderDecisionsQuickList);
+    wireTree('agenda', function () { return state.modal.agenda; }, $('f-agenda-list'), $('f-agenda-input'), $('f-agenda-add'), renderAgendaQuickList);
+    wireTree('decisions', function () { return state.modal.decisions; }, $('f-decisions-list'), $('f-decisions-input'), $('f-decisions-add'), renderDecisionsQuickList);
 
     // Quick-add: actions
     function addAction() {

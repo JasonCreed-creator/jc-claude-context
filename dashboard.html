@@ -235,8 +235,24 @@ body {
 .tag--author { background: transparent; }
 .tag--today { background: var(--success); color: #FFFFFF; border-color: transparent; }
 .tag--week { background: var(--warning); color: #FFFFFF; border-color: transparent; }
-.meeting-item--today { border-left: 3px solid var(--success); padding-left: 9px; }
-.meeting-item--this-week { border-left: 3px solid var(--warning); padding-left: 9px; }
+.meeting-item--today { box-shadow: inset 0 0 0 1px var(--success); }
+.meeting-item--this-week { box-shadow: inset 0 0 0 1px var(--warning); }
+.meeting-item[data-dept="대표이사실"] { border-left: 4px solid var(--text-muted); padding-left: 12px; }
+.meeting-item[data-dept="MICE 기획팀"] { border-left: 4px solid var(--jc-magenta); padding-left: 12px; }
+.meeting-item[data-dept="신사업 기획팀"] { border-left: 4px solid var(--accent); padding-left: 12px; }
+.meeting-item[data-dept="콘텐츠기획팀"] { border-left: 4px solid var(--jc-neon); padding-left: 12px; }
+.meeting-item[data-dept="경영지원팀"] { border-left: 4px solid var(--jc-orange); padding-left: 12px; }
+.meeting-item[data-dept="브랜드 리뉴얼 TF"] { border-left: 4px solid #7B1FA2; padding-left: 12px; }
+.meeting-item[data-dept="전체(주간회의)"] { border-left: 4px solid var(--jc-primary); padding-left: 12px; background: var(--bg-card); }
+.tag--department[data-dept="대표이사실"] { background: var(--text-muted); }
+.tag--department[data-dept="MICE 기획팀"] { background: var(--jc-magenta); }
+.tag--department[data-dept="신사업 기획팀"] { background: var(--accent); }
+.tag--department[data-dept="콘텐츠기획팀"] { background: var(--jc-neon); color: var(--jc-primary); }
+.tag--department[data-dept="경영지원팀"] { background: var(--jc-orange); }
+.tag--department[data-dept="브랜드 리뉴얼 TF"] { background: #7B1FA2; }
+.tag--department[data-dept="전체(주간회의)"] { background: var(--jc-primary); }
+.kpi--clickable { cursor: pointer; }
+.kpi--clickable:hover { box-shadow: var(--shadow-md); }
 .empty { padding: var(--gap-3); text-align: center; color: var(--text-muted); font-size: 14px; }
 .detail-panel {
   background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
@@ -457,27 +473,33 @@ body {
 .field textarea { min-height: 80px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
 .field textarea.field__actions { min-height: 100px; }
 .attendee-picker {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px;
-  max-height: 220px; overflow-y: auto;
-  padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  display: flex; flex-wrap: wrap; gap: 6px;
+  max-height: 260px; overflow-y: auto;
+  padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);
   background: var(--bg-elev); margin-bottom: 6px;
 }
 .attendee-picker__group {
-  grid-column: 1 / -1;
+  flex: 0 0 100%;
   font-size: 10px; font-weight: 700; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.5px;
-  padding: 8px 4px 4px; border-top: 1px solid var(--border);
+  padding: 6px 0 2px; border-top: 1px solid var(--border);
+  margin-top: 4px;
 }
-.attendee-picker__group:first-child { border-top: none; padding-top: 4px; }
+.attendee-picker__group:first-child { border-top: none; padding-top: 0; margin-top: 0; }
 .attendee-pick {
-  display: flex; align-items: center; gap: 6px;
-  padding: 5px 8px; border-radius: 4px;
-  font-size: 12px; cursor: pointer;
-  transition: background-color 0.1s ease;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: var(--bg); border: 1px solid var(--border);
+  font-size: 12px; color: var(--text); cursor: pointer;
+  user-select: none;
+  transition: all 0.12s ease;
 }
-.attendee-pick:hover { background: var(--bg-card); }
-.attendee-pick input { margin: 0; cursor: pointer; }
-.attendee-pick input:checked + span { font-weight: 600; color: var(--accent); }
+.attendee-pick input { display: none; }
+.attendee-pick:hover { border-color: var(--accent); color: var(--accent); }
+.attendee-pick.is-selected {
+  background: var(--accent); color: #FFFFFF; border-color: var(--accent); font-weight: 600;
+}
+.attendee-pick.is-selected::before { content: '✓ '; font-size: 11px; }
 
 /* ---------- New sections (Phase B+C) ---------- */
 .biz-section {
@@ -590,6 +612,10 @@ body {
 .man-card__status--plan { background: #FFF8E1; color: #B45309; }
 .man-card__status--work { background: var(--accent-soft); color: var(--accent-strong); }
 .man-card__status--done { background: #E8F5E9; color: #2E7D32; }
+.man-card--done { opacity: 0.85; background: var(--bg-card); }
+.man-bar__fill--done { background: var(--success); }
+.man-subtitle { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 10px; }
+.man-subtitle:first-of-type { margin-top: 4px; }
 
 @media (max-width: 1200px) {
   .kpis { grid-template-columns: repeat(3, 1fr); }
@@ -649,8 +675,8 @@ body {
   </header>
 
   <section class="kpis" id="kpis" aria-label="핵심 KPI">
-    <div class="kpi kpi--p1">
-      <div class="kpi__label">이번 주 회의</div>
+    <div class="kpi kpi--p1 kpi--clickable" id="kpi-meetings-card" title="클릭하면 이번 주 회의록 목록으로 이동">
+      <div class="kpi__label">이번 주 회의 <span style="font-size:10px;color:var(--text-muted);font-weight:400">▼ 클릭</span></div>
       <div class="kpi__value-row"><span class="kpi__value" id="kpi-meetings">–</span><span class="kpi__unit">건</span></div>
       <div class="kpi__sub"><span id="kpi-meetings-sub">5개 부서</span></div>
     </div>
@@ -758,53 +784,7 @@ body {
     </div>
   </section>
 
-  <section class="biz-section" aria-label="RMB 모객 현황">
-    <div class="sec-head">
-      <div>
-        <div class="sec-title"><span class="sec-title__bar"></span>RMB 모객 현황 (리멤버 협업)</div>
-        <div class="sec-desc">행사별 게런티 vs 현재 RSVP — 데모 데이터</div>
-      </div>
-      <span class="sec-tag">2026 누적 6건 · 평균 87%</span>
-    </div>
-    <div class="rmb-grid">
-      <div class="rmb-card">
-        <div class="rmb-card__h"><div><div class="rmb-card__name">RMB 샌드버드 코리아</div><div class="rmb-card__date">2026.04.16 · 완료</div></div></div>
-        <div class="rmb-card__bar-label"><span>쇼업 36명</span><span>게런티 40명</span></div>
-        <div class="rmb-bar"><div class="rmb-bar__fill rmb-bar__fill--under" style="width:90%"></div></div>
-        <div class="rmb-card__stats"><div class="rmb-stat"><div class="rmb-stat__v">90%</div><div class="rmb-stat__l">달성률</div></div></div>
-      </div>
-      <div class="rmb-card">
-        <div class="rmb-card__h"><div><div class="rmb-card__name">RMB REBUILD26</div><div class="rmb-card__date">2026.05.07 · 완료</div></div></div>
-        <div class="rmb-card__bar-label"><span>등록 534명</span><span>게런티 700명</span></div>
-        <div class="rmb-bar"><div class="rmb-bar__fill rmb-bar__fill--under" style="width:76%"></div></div>
-        <div class="rmb-card__stats"><div class="rmb-stat"><div class="rmb-stat__v">76%</div><div class="rmb-stat__l">달성률</div></div></div>
-      </div>
-      <div class="rmb-card">
-        <div class="rmb-card__h"><div><div class="rmb-card__name">센트릭 RSVP</div><div class="rmb-card__date">2026.05.21 · 진행</div></div></div>
-        <div class="rmb-card__bar-label"><span>참석의향 32명</span><span>게런티 40명</span></div>
-        <div class="rmb-bar"><div class="rmb-bar__fill" style="width:80%"></div></div>
-        <div class="rmb-card__stats"><div class="rmb-stat"><div class="rmb-stat__v">80%</div><div class="rmb-stat__l">달성률</div></div></div>
-      </div>
-      <div class="rmb-card">
-        <div class="rmb-card__h"><div><div class="rmb-card__name">투비소프트 그랜드</div><div class="rmb-card__date">2026.05.27 · 진행</div></div></div>
-        <div class="rmb-card__bar-label"><span>참석의향 106명</span><span>게런티 280명</span></div>
-        <div class="rmb-bar"><div class="rmb-bar__fill rmb-bar__fill--under" style="width:38%"></div></div>
-        <div class="rmb-card__stats"><div class="rmb-stat"><div class="rmb-stat__v">38%</div><div class="rmb-stat__l">달성률</div></div></div>
-      </div>
-      <div class="rmb-card">
-        <div class="rmb-card__h"><div><div class="rmb-card__name">옥타브</div><div class="rmb-card__date">2026.06.25 · 진행</div></div></div>
-        <div class="rmb-card__bar-label"><span>준비중</span><span>게런티 20-25명</span></div>
-        <div class="rmb-bar"><div class="rmb-bar__fill rmb-bar__fill--under" style="width:15%"></div></div>
-        <div class="rmb-card__stats"><div class="rmb-stat"><div class="rmb-stat__v">15%</div><div class="rmb-stat__l">달성률</div></div></div>
-      </div>
-      <div class="rmb-card">
-        <div class="rmb-card__h"><div><div class="rmb-card__name">메가인포</div><div class="rmb-card__date">2026.06.25 · 진행</div></div></div>
-        <div class="rmb-card__bar-label"><span>준비중</span><span>게런티 40명</span></div>
-        <div class="rmb-bar"><div class="rmb-bar__fill rmb-bar__fill--under" style="width:10%"></div></div>
-        <div class="rmb-card__stats"><div class="rmb-stat"><div class="rmb-stat__v">10%</div><div class="rmb-stat__l">달성률</div></div></div>
-      </div>
-    </div>
-  </section>
+  <!-- RMB 모객 현황은 신사업실 단독이라 회사 종합 대시보드에서 제외. 신사업실 전용 뷰(예정) -->
 
   <section class="biz-section" aria-label="입찰 파이프라인">
     <div class="sec-head">
@@ -836,10 +816,11 @@ body {
     <div class="sec-head">
       <div>
         <div class="sec-title"><span class="sec-title__bar"></span>매뉴얼 작성 진척 (지식자산)</div>
-        <div class="sec-desc">파트별 주간 매뉴얼화 트래커</div>
+        <div class="sec-desc">파트별 주간 매뉴얼화 트래커 · 진행 5건 · 완료 6건</div>
       </div>
-      <span class="sec-tag">5개 파트 · 평균 58%</span>
+      <span class="sec-tag">총 11건</span>
     </div>
+    <div class="man-subtitle">진행중 (5)</div>
     <div class="man-grid">
       <div class="man-card">
         <div class="man-card__owner">기획2파트 (혜전)</div>
@@ -870,6 +851,45 @@ body {
         <div class="man-card__title">명찰·제작물·베뉴 가이드</div>
         <div class="man-card__prog"><div class="man-bar"><div class="man-bar__fill" style="width:80%"></div></div><span class="man-card__pct">80%</span></div>
         <span class="man-card__status man-card__status--work">진행중</span>
+      </div>
+    </div>
+    <div class="man-subtitle">완료 (6)</div>
+    <div class="man-grid">
+      <div class="man-card man-card--done">
+        <div class="man-card__owner">기획2파트 (혜전)</div>
+        <div class="man-card__title">물품리스트</div>
+        <div class="man-card__prog"><div class="man-bar"><div class="man-bar__fill man-bar__fill--done" style="width:100%"></div></div><span class="man-card__pct">100%</span></div>
+        <span class="man-card__status man-card__status--done">✓ 완료</span>
+      </div>
+      <div class="man-card man-card--done">
+        <div class="man-card__owner">신사업파트 (정길)</div>
+        <div class="man-card__title">브릿지 제작 part 1</div>
+        <div class="man-card__prog"><div class="man-bar"><div class="man-bar__fill man-bar__fill--done" style="width:100%"></div></div><span class="man-card__pct">100%</span></div>
+        <span class="man-card__status man-card__status--done">✓ 완료</span>
+      </div>
+      <div class="man-card man-card--done">
+        <div class="man-card__owner">기획1파트 (은용)</div>
+        <div class="man-card__title">구급상자 매뉴얼·포장마차 단가</div>
+        <div class="man-card__prog"><div class="man-bar"><div class="man-bar__fill man-bar__fill--done" style="width:100%"></div></div><span class="man-card__pct">100%</span></div>
+        <span class="man-card__status man-card__status--done">✓ 완료</span>
+      </div>
+      <div class="man-card man-card--done">
+        <div class="man-card__owner">경영지원팀</div>
+        <div class="man-card__title">기안관리-new영수증등록</div>
+        <div class="man-card__prog"><div class="man-bar"><div class="man-bar__fill man-bar__fill--done" style="width:100%"></div></div><span class="man-card__pct">100%</span></div>
+        <span class="man-card__status man-card__status--done">✓ 완료</span>
+      </div>
+      <div class="man-card man-card--done">
+        <div class="man-card__owner">콘텐츠기획팀</div>
+        <div class="man-card__title">JW 메리어트 동대문 베뉴 가이드</div>
+        <div class="man-card__prog"><div class="man-bar"><div class="man-bar__fill man-bar__fill--done" style="width:100%"></div></div><span class="man-card__pct">100%</span></div>
+        <span class="man-card__status man-card__status--done">✓ 완료</span>
+      </div>
+      <div class="man-card man-card--done">
+        <div class="man-card__owner">콘텐츠기획팀</div>
+        <div class="man-card__title">키비주얼 아카이빙 (2022-2025)</div>
+        <div class="man-card__prog"><div class="man-bar"><div class="man-bar__fill man-bar__fill--done" style="width:100%"></div></div><span class="man-card__pct">100%</span></div>
+        <span class="man-card__status man-card__status--done">✓ 완료</span>
       </div>
     </div>
   </section>
@@ -1540,12 +1560,13 @@ window.STANDALONE_SAMPLE = {
       li.className = 'meeting-item' + (recency.cls ? ' ' + recency.cls : '');
       li.setAttribute('aria-selected', String(key === selectedKey));
       li.dataset.key = key;
+      if (row.department) li.dataset.dept = row.department;
       var tasks = MD.countTasks(row.actions_md);
       var taskBadge = tasks.total > 0 ? '<span class="tag">액션 ' + tasks.done + '/' + tasks.total + '</span>' : '';
       var recencyBadge = recency.tag
         ? '<span class="tag ' + (recency.tag === '오늘' ? 'tag--today' : 'tag--week') + '">' + recency.tag + '</span>' : '';
       var deptBadge = row.department
-        ? '<span class="tag tag--department">' + MD.escapeHtml(row.department) + '</span>' : '';
+        ? '<span class="tag tag--department" data-dept="' + MD.escapeHtml(row.department) + '">' + MD.escapeHtml(row.department) + '</span>' : '';
       li.innerHTML =
         '<div class="meeting-item__row">' +
           '<span class="meeting-item__title">' + MD.escapeHtml(row.title || '(제목없음)') + '</span>' +
@@ -1891,13 +1912,20 @@ window.STANDALONE_SAMPLE = {
     depts.forEach(function (deptName) {
       html += '<div class="attendee-picker__group">' + MiniMarkdown.escapeHtml(deptName) + '</div>';
       dm[deptName].forEach(function (m) {
-        var id = 'att-' + m.replace(/\s+/g, '_');
-        html += '<label class="attendee-pick" for="' + id + '">' +
-          '<input type="checkbox" id="' + id + '" value="' + MiniMarkdown.escapeHtml(m) + '">' +
+        html += '<label class="attendee-pick">' +
+          '<input type="checkbox" value="' + MiniMarkdown.escapeHtml(m) + '">' +
           '<span>' + MiniMarkdown.escapeHtml(m) + '</span></label>';
       });
     });
     picker.innerHTML = html;
+    if (!picker._wired) {
+      picker.addEventListener('change', function (e) {
+        if (e.target && e.target.type === 'checkbox') {
+          e.target.closest('.attendee-pick').classList.toggle('is-selected', e.target.checked);
+        }
+      });
+      picker._wired = true;
+    }
   }
 
   function setAttendeesFromText(attendeesText) {
@@ -1906,12 +1934,19 @@ window.STANDALONE_SAMPLE = {
     if (!picker || !extra) return;
     var existing = (attendeesText || '').split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
     var known = new Set(Array.from(picker.querySelectorAll('input')).map(function (cb) { return cb.value; }));
-    picker.querySelectorAll('input').forEach(function (cb) { cb.checked = false; });
+    picker.querySelectorAll('.attendee-pick').forEach(function (label) {
+      var cb = label.querySelector('input');
+      if (cb) cb.checked = false;
+      label.classList.remove('is-selected');
+    });
     var extras = [];
     existing.forEach(function (name) {
       if (known.has(name)) {
         var cb = picker.querySelector('input[value="' + name.replace(/"/g, '\\"') + '"]');
-        if (cb) cb.checked = true;
+        if (cb) {
+          cb.checked = true;
+          cb.closest('.attendee-pick').classList.add('is-selected');
+        }
       } else {
         extras.push(name);
       }
@@ -2076,6 +2111,18 @@ window.STANDALONE_SAMPLE = {
     $('f-department').addEventListener('change', function (e) {
       updateProjectOptions(e.target.value);
     });
+    var kpiCard = $('kpi-meetings-card');
+    if (kpiCard) {
+      kpiCard.addEventListener('click', function () {
+        state.filter.week = MeetingFilter.currentWeekISO();
+        $('week-select').value = state.filter.week;
+        state.selectedKey = null;
+        renderAll();
+        var listEl = document.querySelector('.content');
+        if (listEl) listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        toast('이번 주 회의록 ' + state.rows.filter(function (r) { return MeetingFilter.rowWeek(r) === state.filter.week; }).length + '건 표시', 2500);
+      });
+    }
     $('export-btn').addEventListener('click', exportLocal);
     $('import-btn').addEventListener('click', function () { $('import-file').click(); });
     $('import-file').addEventListener('change', function (e) {

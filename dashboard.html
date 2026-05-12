@@ -139,7 +139,7 @@ body {
 .btn--icon { width: 36px; padding: 0; background: transparent; border-color: var(--border); font-size: 16px; }
 .btn--sm { height: 28px; padding: 0 10px; font-size: 12px; }
 .kpis {
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   gap: var(--gap-2); padding: var(--gap-3); background: var(--bg);
 }
 .kpi {
@@ -592,6 +592,27 @@ body {
 .dday-card__title { font-size: 13px; font-weight: 600; margin-top: 4px; color: var(--text); }
 .dday-card__sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
+/* Live issues (real-time) */
+.live-issues { margin: 0 var(--gap-3) var(--gap-3); }
+.live-issue-add { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.live-issue-add input { flex: 1; }
+.live-issues-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+.live-issue {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 14px; background: var(--bg); border-radius: var(--radius-md);
+  border-left: 3px solid var(--warning); border: 1px solid var(--border); border-left-width: 3px;
+  font-size: 13px;
+}
+.live-issue__text { flex: 1; line-height: 1.5; color: var(--text); }
+.live-issue__time { font-size: 10.5px; color: var(--text-muted); font-family: var(--font-mono); white-space: nowrap; }
+.live-issue__remove {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 16px; padding: 0 6px; line-height: 1;
+  border-radius: 4px;
+}
+.live-issue__remove:hover { color: var(--danger); background: rgba(220,38,38,0.08); }
+.live-issues-empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
 /* Kanban */
 .kanban { display: grid; grid-template-columns: repeat(8, minmax(180px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 8px; }
 .kcol { background: var(--bg-card); border-radius: var(--radius-md); padding: 10px; min-height: 200px; }
@@ -775,17 +796,12 @@ body {
     <div class="kpi kpi--p1 kpi--clickable" id="kpi-meetings-card" title="클릭하면 이번 주 회의록 목록으로 이동">
       <div class="kpi__label">이번 주 회의 <span style="font-size:10px;color:var(--text-muted);font-weight:400">▼ 클릭</span></div>
       <div class="kpi__value-row"><span class="kpi__value" id="kpi-meetings">–</span><span class="kpi__unit">건</span></div>
-      <div class="kpi__sub"><span id="kpi-meetings-sub">5개 부서</span></div>
+      <div class="kpi__sub"><span id="kpi-meetings-sub">자동 집계</span></div>
     </div>
     <div class="kpi kpi--p2">
       <div class="kpi__label">진행 프로젝트</div>
-      <div class="kpi__value-row"><span class="kpi__value" id="kpi-projects">14</span><span class="kpi__unit">건</span></div>
-      <div class="kpi__sub"><span class="kpi__delta kpi__delta--up">▲ 2</span>전주 대비 신규 2건</div>
-    </div>
-    <div class="kpi kpi--p3">
-      <div class="kpi__label">RMB 모객 달성률</div>
-      <div class="kpi__value-row"><span class="kpi__value" id="kpi-rmb">87</span><span class="kpi__unit">%</span></div>
-      <div class="kpi__sub"><span class="kpi__delta kpi__delta--up">▲ 5%p</span>6건 평균</div>
+      <div class="kpi__value-row"><span class="kpi__value" id="kpi-projects">–</span><span class="kpi__unit">건</span></div>
+      <div class="kpi__sub">project_tag 유니크</div>
     </div>
     <div class="kpi kpi--p4 kpi--with-bar">
       <div class="kpi__label">액션 완료율</div>
@@ -797,6 +813,21 @@ body {
       <div class="kpi__value-row"><span class="kpi__value" id="kpi-open">–</span><span class="kpi__unit">건</span></div>
       <div class="kpi__sub" id="kpi-open-sub">전체 부서 합계</div>
     </div>
+  </section>
+
+  <section class="biz-section live-issues" aria-label="실시간 이슈/메모">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title"><span class="sec-title__bar"></span>회의 중 이슈·메모 <span style="font-size:12px;font-weight:500;color:var(--text-muted);">(실시간)</span></div>
+        <div class="sec-desc">안건에서 파생된 즉석 이슈 · 막내 멤버가 회의 진행 중 한 줄씩 추가</div>
+      </div>
+      <span class="sec-tag" id="live-issues-count">0건</span>
+    </div>
+    <div class="live-issue-add">
+      <input type="text" id="live-issue-input" class="control" placeholder="이슈/메모 한 줄 입력 후 Enter — 회의 중 빠르게 추가" />
+      <button type="button" id="live-issue-add-btn" class="btn btn--primary btn--sm">+ 추가</button>
+    </div>
+    <div id="live-issues-list" class="live-issues-list"></div>
   </section>
 
   <section class="dday-strip" aria-label="다가오는 마감">
@@ -1071,15 +1102,10 @@ body {
               <button type="button" id="f-agenda-add" class="btn btn--primary btn--sm">+ 추가</button>
             </div>
           </div>
-          <div class="field">
-            <label class="field__label">회의 중 이슈·메모 <span style="font-size:11px;color:var(--text-muted);font-weight:400">(안건에서 파생된 즉석 이슈)</span></label>
-            <div class="quick-list" id="f-issues-list"></div>
-            <div class="quick-add">
-              <input type="text" id="f-issues-input" placeholder="이슈/메모 한 줄 입력 후 Enter" />
-              <button type="button" id="f-issues-add" class="btn btn--primary btn--sm">+ 추가</button>
-            </div>
-            <span class="field__hint">회의 중 막내 멤버가 실시간으로 추가하기 좋은 영역. 결정·액션이 아닌 메모용.</span>
-          </div>
+          <!-- 회의 중 이슈/메모는 메인 화면 '실시간 이슈/메모' 섹션으로 이동 -->
+          <input type="hidden" id="f-issues-list" />
+          <input type="hidden" id="f-issues-input" />
+          <input type="hidden" id="f-issues-add" />
           <div class="field">
             <label class="field__label">결정사항</label>
             <div class="quick-list" id="f-decisions-list"></div>
@@ -1528,6 +1554,37 @@ window.STANDALONE_SAMPLE = {
   global.LocalStore = { list: list, upsert: upsert, remove: remove, clear: clear, importJson: importJson, exportJson: exportJson };
 })(window);
 
+/* ====== LocalIssues — 회의 중 빠른 이슈/메모 (회의록과 분리, localStorage) ====== */
+(function (global) {
+  'use strict';
+  var KEY = 'jc-meeting-dashboard:live-issues';
+  function uid() { return 'I' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function list() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function save(items) {
+    try { localStorage.setItem(KEY, JSON.stringify(items)); return true; }
+    catch (e) { console.error('[LocalIssues] save fail:', e); return false; }
+  }
+  function add(text, author) {
+    if (!text || !text.trim()) return null;
+    var items = list();
+    items.unshift({ id: uid(), text: text.trim(), author: author || '', createdAt: new Date().toISOString() });
+    return save(items) ? items : null;
+  }
+  function removeItem(id) {
+    var items = list().filter(function (i) { return i.id !== id; });
+    return save(items);
+  }
+  function clear() { return save([]); }
+  global.LocalIssues = { list: list, add: add, remove: removeItem, clear: clear };
+})(window);
+
 /* ====== AutoSections — 회의록 데이터에서 D-day·파트별 카드·KPI 자동 집계 ====== */
 (function (global) {
   'use strict';
@@ -1753,10 +1810,11 @@ window.STANDALONE_SAMPLE = {
     rows.forEach(function (r) { var c = MD.countTasks(r.actions_md); totals.total += c.total; totals.done += c.done; });
     var open = totals.total - totals.done;
     var rate = totals.total === 0 ? 0 : Math.round((totals.done / totals.total) * 100);
-    el('kpi-meetings').textContent = weekRows.length;
-    el('kpi-actions').textContent = totals.total;
-    el('kpi-completion').textContent = rate;
-    el('kpi-open').textContent = open;
+    function setText(id, v) { var e = el(id); if (e) e.textContent = v; }
+    setText('kpi-meetings', weekRows.length);
+    setText('kpi-actions', totals.total);
+    setText('kpi-completion', rate);
+    setText('kpi-open', open);
     var bar = el('kpi-completion-bar');
     if (bar) bar.style.width = rate + '%';
   }
@@ -2205,6 +2263,7 @@ window.STANDALONE_SAMPLE = {
         $('parts-tag').textContent = deptCount + '개 부서 · 자동 집계';
       }
     }
+    renderLiveIssues();
     MeetingRender.departmentChips(state.config, rows, state.filter.department, function (dept) {
       state.filter.department = dept; state.selectedKey = null; renderAll();
     });
@@ -2227,6 +2286,26 @@ window.STANDALONE_SAMPLE = {
       MeetingRender.detail(filtered[0], detailCallbacks);
       renderListSelection();
     }
+  }
+  function renderLiveIssues() {
+    var listEl = $('live-issues-list');
+    var countEl = $('live-issues-count');
+    if (!listEl) return;
+    var items = (window.LocalIssues && LocalIssues.list()) || [];
+    if (countEl) countEl.textContent = items.length + '건';
+    if (items.length === 0) {
+      listEl.innerHTML = '<div class="live-issues-empty">아직 이슈/메모가 없습니다. 회의 진행 중 위 입력란에 한 줄씩 추가하세요.</div>';
+      return;
+    }
+    listEl.innerHTML = items.map(function (i) {
+      var t = new Date(i.createdAt);
+      var tStr = ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
+      return '<div class="live-issue">' +
+        '<span class="live-issue__time">' + tStr + '</span>' +
+        '<span class="live-issue__text">' + MiniMarkdown.escapeHtml(i.text) + '</span>' +
+        '<button type="button" class="live-issue__remove" data-issue-id="' + i.id + '" aria-label="삭제">×</button>' +
+      '</div>';
+    }).join('');
   }
   function renderListSelection() {
     var items = document.querySelectorAll('.meeting-item');
@@ -2649,6 +2728,31 @@ window.STANDALONE_SAMPLE = {
         renderActionsQuickList();
       }
     });
+    // Live issues 빠른 추가 + 삭제
+    var liveAdd = $('live-issue-add-btn');
+    var liveInput = $('live-issue-input');
+    function addLiveIssue() {
+      var v = liveInput.value.trim();
+      if (!v) return;
+      if (!window.LocalIssues) return;
+      LocalIssues.add(v);
+      liveInput.value = '';
+      renderLiveIssues();
+      liveInput.focus();
+    }
+    if (liveAdd) liveAdd.addEventListener('click', addLiveIssue);
+    if (liveInput) liveInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); addLiveIssue(); }
+    });
+    var liveListEl = $('live-issues-list');
+    if (liveListEl) liveListEl.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-issue-id]');
+      if (b && window.LocalIssues) {
+        LocalIssues.remove(b.getAttribute('data-issue-id'));
+        renderLiveIssues();
+      }
+    });
+
     var kpiCard = $('kpi-meetings-card');
     if (kpiCard) {
       kpiCard.addEventListener('click', function () {

@@ -1072,6 +1072,15 @@ body {
             </div>
           </div>
           <div class="field">
+            <label class="field__label">회의 중 이슈·메모 <span style="font-size:11px;color:var(--text-muted);font-weight:400">(안건에서 파생된 즉석 이슈)</span></label>
+            <div class="quick-list" id="f-issues-list"></div>
+            <div class="quick-add">
+              <input type="text" id="f-issues-input" placeholder="이슈/메모 한 줄 입력 후 Enter" />
+              <button type="button" id="f-issues-add" class="btn btn--primary btn--sm">+ 추가</button>
+            </div>
+            <span class="field__hint">회의 중 막내 멤버가 실시간으로 추가하기 좋은 영역. 결정·액션이 아닌 메모용.</span>
+          </div>
+          <div class="field">
             <label class="field__label">결정사항</label>
             <div class="quick-list" id="f-decisions-list"></div>
             <div class="quick-add">
@@ -1974,6 +1983,7 @@ window.STANDALONE_SAMPLE = {
         renderActionListWidget(row, isLocal) +
         bodyWidget('결정사항', '★', 'amber', row.decisions_md, 2, '결정사항이 기록되지 않았습니다.') +
         bodyWidget('안건', '▣', 'gray', row.agenda_md, 2, '안건이 기록되지 않았습니다.') +
+        bodyWidget('회의 중 이슈·메모', '⚠', 'red', row.issues_md, 4, '회의 중 이슈가 없습니다.') +
         '<div class="widget widget--span2">' +
           '<div class="widget__head">' +
             '<div class="widget__icon">👥</div>' +
@@ -2016,7 +2026,7 @@ window.STANDALONE_SAMPLE = {
 (function (global) {
   'use strict';
   var STORAGE_KEY_THEME = 'jc-meeting-dashboard:theme';
-  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], decisions: [], actions: [], agendaSubOpen: -1, decisionsSubOpen: -1 } };
+  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], issues: [], decisions: [], actions: [] } };
 
   /* ===== Modal quick-add: parsing, rendering, serialization ===== */
   function parseAgendaList(md) {
@@ -2102,6 +2112,10 @@ window.STANDALONE_SAMPLE = {
   function renderAgendaQuickList() {
     renderTreeQuickList('f-agenda-list', state.modal.agenda,
       'remove-agenda', 'remove-agenda-sub', 'add-agenda-sub', 'sub-input-agenda');
+  }
+  function renderIssuesQuickList() {
+    renderTreeQuickList('f-issues-list', state.modal.issues,
+      'remove-issues', 'remove-issues-sub', 'add-issues-sub', 'sub-input-issues');
   }
   function renderDecisionsQuickList() {
     renderTreeQuickList('f-decisions-list', state.modal.decisions,
@@ -2373,14 +2387,15 @@ window.STANDALONE_SAMPLE = {
     $('f-author').value = row ? (row.author || defaultAuthor) : defaultAuthor;
     setAttendeesFromText(row ? (row.attendees || '') : ((state.config.team && state.config.team.members) || []).join(', '));
     state.modal.agenda = row ? parseAgendaList(row.agenda_md) : [];
+    state.modal.issues = row ? parseAgendaList(row.issues_md) : [];
     state.modal.decisions = row ? parseAgendaList(row.decisions_md) : [];
     state.modal.actions = row ? parseActionList(row.actions_md) : [];
-    state.modal.agendaSubOpen = -1;
-    state.modal.decisionsSubOpen = -1;
     renderAgendaQuickList();
+    renderIssuesQuickList();
     renderDecisionsQuickList();
     renderActionsQuickList();
     $('f-agenda-input').value = '';
+    $('f-issues-input').value = '';
     $('f-decisions-input').value = '';
     $('f-action-text').value = '';
     $('f-action-due').value = '';
@@ -2413,6 +2428,7 @@ window.STANDALONE_SAMPLE = {
         author: $('f-author').value,
         attendees: collectAttendeesText(),
         agenda_md: serializeAgenda('안건', state.modal.agenda),
+        issues_md: serializeAgenda('회의 중 이슈·메모', state.modal.issues),
         decisions_md: serializeAgenda('결정사항', state.modal.decisions),
         actions_md: serializeActions(state.modal.actions),
         next_meeting: $('f-next_meeting').value,
@@ -2431,17 +2447,33 @@ window.STANDALONE_SAMPLE = {
       if (existingIdx >= 0) state.rows[existingIdx] = saved;
       else state.rows.push(saved);
 
+      // 필터 자동 초기화 (사용자가 다른 주차·부서·프로젝트를 보고 있어도 새 row가 보이도록)
+      state.filter = { week: 'all', project: 'all', department: 'all', keyword: '' };
+      if ($('week-select')) $('week-select').value = 'all';
+      if ($('search-input')) $('search-input').value = '';
+
       state.selectedKey = MeetingRender.rowKey(saved);
       closeModal();
       populateWeekSelect();
       renderAll();
 
+      // 새 row가 보이는 위치로 자동 스크롤
+      setTimeout(function () {
+        var newCard = document.querySelector('.meeting-item[aria-selected="true"]');
+        if (newCard) {
+          newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          var listPanel = document.querySelector('.list-panel');
+          if (listPanel) listPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+
       // 백그라운드로 시트 동기화 (있으면)
       if (state.config && state.config.sheet && state.config.sheet.id) {
-        setTimeout(reload, 100);
+        setTimeout(reload, 200);
       }
 
-      toast((id ? '수정됨' : '저장됨') + ' · 로컬 ' + LocalStore.list().length + '건 · 부서: ' + dept, 3000);
+      toast((id ? '수정됨' : '저장됨') + ' · 로컬 ' + LocalStore.list().length + '건 · ' + dept + ' · 필터 초기화', 3500);
     } catch (e) {
       console.error('[saveModal] error:', e);
       toast('저장 오류: ' + e.message, 5000);
@@ -2581,6 +2613,7 @@ window.STANDALONE_SAMPLE = {
       });
     }
     wireTree('agenda', function () { return state.modal.agenda; }, $('f-agenda-list'), $('f-agenda-input'), $('f-agenda-add'), renderAgendaQuickList);
+    wireTree('issues', function () { return state.modal.issues; }, $('f-issues-list'), $('f-issues-input'), $('f-issues-add'), renderIssuesQuickList);
     wireTree('decisions', function () { return state.modal.decisions; }, $('f-decisions-list'), $('f-decisions-input'), $('f-decisions-add'), renderDecisionsQuickList);
 
     // Quick-add: actions

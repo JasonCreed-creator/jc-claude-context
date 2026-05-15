@@ -613,6 +613,58 @@ body {
 .live-issue__remove:hover { color: var(--danger); background: rgba(220,38,38,0.08); }
 .live-issues-empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
+/* 주차별 주요 안건 — 캐리오버 + 해결여부 + 차주 이월 */
+.weekly-agenda { margin: 0 var(--gap-3) var(--gap-3); }
+.weekly-agenda__prev {
+  margin-bottom: 12px; padding: 10px 12px;
+  border: 1px dashed var(--accent); border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+}
+.weekly-agenda__prev-head {
+  font-size: 12px; font-weight: 600; color: var(--accent-strong); margin-bottom: 6px;
+}
+.weekly-agenda__prev-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 4px 0; font-size: 13px;
+}
+.weekly-agenda__prev-item span { color: var(--text); }
+.weekly-agenda__add { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.weekly-agenda__add input { flex: 1; }
+.weekly-agenda__list { display: flex; flex-direction: column; gap: 6px; }
+.weekly-agenda-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+}
+.weekly-agenda-item.is-done { background: var(--bg-card); }
+.weekly-agenda-item.is-done .weekly-agenda-item__text {
+  text-decoration: line-through; color: var(--text-muted);
+}
+.weekly-agenda-item__check input { width: 16px; height: 16px; cursor: pointer; margin: 0; }
+.weekly-agenda-item__text { flex: 1; line-height: 1.5; font-size: 13.5px; }
+.weekly-agenda-item__carry {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11.5px; color: var(--text-muted); cursor: pointer; white-space: nowrap;
+}
+.weekly-agenda-item__carry input { width: 14px; height: 14px; margin: 0; }
+.weekly-agenda-item__remove {
+  background: transparent; border: none; color: var(--text-muted);
+  font-size: 16px; cursor: pointer; padding: 2px 6px; border-radius: 4px; line-height: 1;
+}
+.weekly-agenda-item__remove:hover { color: var(--danger); background: rgba(220,38,38,0.08); }
+.weekly-agenda__empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+/* 모달 캐리오버 힌트 */
+.carryover-hint {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; margin: 0 0 16px 0;
+  border: 1px dashed var(--accent); border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  font-size: 13px;
+}
+.carryover-hint__text { flex: 1; color: var(--text); }
+.carryover-hint__icon { font-size: 14px; }
+
 /* Kanban */
 .kanban { display: grid; grid-template-columns: repeat(8, minmax(180px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 8px; }
 .kcol { background: var(--bg-card); border-radius: var(--radius-md); padding: 10px; min-height: 200px; }
@@ -828,6 +880,22 @@ body {
       <button type="button" id="live-issue-add-btn" class="btn btn--primary btn--sm">+ 추가</button>
     </div>
     <div id="live-issues-list" class="live-issues-list"></div>
+  </section>
+
+  <section class="biz-section weekly-agenda" aria-label="주차별 주요 안건">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title"><span class="sec-title__bar"></span>이번 주 주요 안건 <span id="weekly-agenda-week" style="font-size:12px;font-weight:500;color:var(--text-muted);"></span></div>
+        <div class="sec-desc">주차별 핵심 안건 · 해결여부 토글 · 차주 이월 체크 시 다음 주에 자동 캐리오버</div>
+      </div>
+      <span class="sec-tag" id="weekly-agenda-count">0건</span>
+    </div>
+    <div class="weekly-agenda__prev" id="weekly-agenda-prev" hidden></div>
+    <div class="weekly-agenda__add">
+      <input type="text" id="weekly-agenda-input" class="control" placeholder="이번 주 주요 안건 한 줄 입력 후 Enter" />
+      <button type="button" id="weekly-agenda-add-btn" class="btn btn--primary btn--sm">+ 추가</button>
+    </div>
+    <div id="weekly-agenda-list" class="weekly-agenda__list"></div>
   </section>
 
   <section class="dday-strip" aria-label="다가오는 마감">
@@ -1058,6 +1126,12 @@ body {
         <button id="modal-close" class="modal__close" aria-label="닫기">×</button>
       </header>
       <div class="modal__body">
+        <div id="carryover-hint" class="carryover-hint" hidden>
+          <span class="carryover-hint__icon">📋</span>
+          <span class="carryover-hint__text" id="carryover-hint-text"></span>
+          <button type="button" id="carryover-btn" class="btn btn--primary btn--sm">불러오기</button>
+          <button type="button" id="carryover-dismiss" class="btn btn--ghost btn--sm" aria-label="닫기">×</button>
+        </div>
         <form id="meeting-form" autocomplete="off" onsubmit="event.preventDefault();return false;">
           <input type="hidden" id="f-id" />
           <div class="field__row">
@@ -1581,6 +1655,57 @@ window.STANDALONE_SAMPLE = {
   global.LocalIssues = { list: list, add: add, remove: removeItem, clear: clear };
 })(window);
 
+/* ====== LocalAgendas — 주차별 주요 안건 (해결여부 토글 + 차주 이월) ====== */
+(function (global) {
+  'use strict';
+  var KEY = 'jc-meeting-dashboard:weekly-agendas';
+  function uid() { return 'A' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function list() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function save(items) {
+    try { localStorage.setItem(KEY, JSON.stringify(items)); return true; }
+    catch (e) { console.error('[LocalAgendas] save fail:', e); return false; }
+  }
+  function add(text, week) {
+    if (!text || !text.trim() || !week) return null;
+    var items = list();
+    items.push({
+      id: uid(), text: text.trim(), week: week,
+      status: 'open', carryToNext: false, createdAt: new Date().toISOString()
+    });
+    return save(items) ? items : null;
+  }
+  function update(id, patch) {
+    var items = list();
+    var idx = -1;
+    for (var i = 0; i < items.length; i++) { if (items[i].id === id) { idx = i; break; } }
+    if (idx < 0) return false;
+    Object.keys(patch).forEach(function (k) { items[idx][k] = patch[k]; });
+    return save(items);
+  }
+  function removeItem(id) {
+    return save(list().filter(function (a) { return a.id !== id; }));
+  }
+  function forWeek(week) {
+    return list().filter(function (a) { return a.week === week; });
+  }
+  function unresolvedCarryFromBefore(week) {
+    return list().filter(function (a) {
+      return a.week < week && a.status === 'open' && a.carryToNext;
+    });
+  }
+  global.LocalAgendas = {
+    list: list, add: add, update: update, remove: removeItem,
+    forWeek: forWeek, unresolvedCarryFromBefore: unresolvedCarryFromBefore
+  };
+})(window);
+
 /* ====== AutoSections — 회의록 데이터에서 D-day·파트별 카드·KPI 자동 집계 ====== */
 (function (global) {
   'use strict';
@@ -2081,7 +2206,7 @@ window.STANDALONE_SAMPLE = {
 (function (global) {
   'use strict';
   var STORAGE_KEY_THEME = 'jc-meeting-dashboard:theme';
-  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], decisions: [], actions: [] } };
+  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, pendingCarryover: null, modal: { agenda: [], decisions: [], actions: [] } };
 
   /* ===== Modal quick-add: parsing, rendering, serialization ===== */
   function parseAgendaList(md) {
@@ -2257,6 +2382,7 @@ window.STANDALONE_SAMPLE = {
       }
     }
     renderLiveIssues();
+    renderWeeklyAgendas();
     MeetingRender.departmentChips(state.config, rows, state.filter.department, function (dept) {
       state.filter.department = dept; state.selectedKey = null; renderAll();
     });
@@ -2297,6 +2423,55 @@ window.STANDALONE_SAMPLE = {
         '<span class="live-issue__time">' + tStr + '</span>' +
         '<span class="live-issue__text">' + MiniMarkdown.escapeHtml(i.text) + '</span>' +
         '<button type="button" class="live-issue__remove" data-issue-id="' + i.id + '" aria-label="삭제">×</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function activeWeek() {
+    return state.filter.week === 'all' ? MeetingFilter.currentWeekISO() : state.filter.week;
+  }
+  function renderWeeklyAgendas() {
+    var listEl = $('weekly-agenda-list');
+    var prevEl = $('weekly-agenda-prev');
+    var weekTag = $('weekly-agenda-week');
+    var countEl = $('weekly-agenda-count');
+    if (!listEl || !window.LocalAgendas) return;
+    var week = activeWeek();
+    if (weekTag) weekTag.textContent = '(' + week + ')';
+    var items = LocalAgendas.forWeek(week);
+    if (countEl) countEl.textContent = items.length + '건';
+    var prev = LocalAgendas.unresolvedCarryFromBefore(week);
+    if (prevEl) {
+      if (prev.length === 0) {
+        prevEl.hidden = true;
+        prevEl.innerHTML = '';
+      } else {
+        prevEl.hidden = false;
+        prevEl.innerHTML = '<div class="weekly-agenda__prev-head">↻ 지난 주 미해결 · 이번 주 계속 (' + prev.length + '건)</div>' +
+          prev.map(function (a) {
+            return '<div class="weekly-agenda__prev-item">' +
+              '<span>· [' + MiniMarkdown.escapeHtml(a.week) + '] ' + MiniMarkdown.escapeHtml(a.text) + '</span>' +
+              '<button type="button" class="btn btn--ghost btn--sm" data-carry-now="' + a.id + '">이번 주로 가져오기</button>' +
+            '</div>';
+          }).join('');
+      }
+    }
+    if (items.length === 0) {
+      listEl.innerHTML = '<div class="weekly-agenda__empty">이번 주(' + week + ') 안건이 없습니다. 위 입력란에 추가하세요.</div>';
+      return;
+    }
+    listEl.innerHTML = items.map(function (a) {
+      var isDone = a.status === 'done';
+      return '<div class="weekly-agenda-item' + (isDone ? ' is-done' : '') + '">' +
+        '<label class="weekly-agenda-item__check">' +
+          '<input type="checkbox" data-agenda-toggle="' + a.id + '"' + (isDone ? ' checked' : '') + ' />' +
+        '</label>' +
+        '<span class="weekly-agenda-item__text">' + MiniMarkdown.escapeHtml(a.text) + '</span>' +
+        '<label class="weekly-agenda-item__carry" title="해결 안 되면 다음 주로 자동 이월">' +
+          '<input type="checkbox" data-agenda-carry="' + a.id + '"' + (a.carryToNext ? ' checked' : '') + ' />' +
+          '<span>차주 이월</span>' +
+        '</label>' +
+        '<button type="button" class="weekly-agenda-item__remove" data-agenda-remove="' + a.id + '" aria-label="삭제">×</button>' +
       '</div>';
     }).join('');
   }
@@ -2448,6 +2623,56 @@ window.STANDALONE_SAMPLE = {
     if (list.indexOf(current) !== -1) proj.value = current;
   }
 
+  function findPrevWeekRow(currentDateStr, dept) {
+    if (!dept) return null;
+    var currentDate = MeetingFilter.parseDate(currentDateStr);
+    if (!currentDate) return null;
+    var candidates = state.rows.filter(function (r) {
+      if (r.department !== dept) return false;
+      var d = MeetingFilter.parseDate(r.meeting_date);
+      if (!d) return false;
+      return d.getTime() < currentDate.getTime();
+    });
+    if (candidates.length === 0) return null;
+    candidates.sort(function (a, b) {
+      return MeetingFilter.parseDate(b.meeting_date) - MeetingFilter.parseDate(a.meeting_date);
+    });
+    return candidates[0];
+  }
+  function updateCarryoverHint(forNewRow) {
+    var hint = $('carryover-hint');
+    var text = $('carryover-hint-text');
+    if (!hint || !text) return;
+    if (!forNewRow) { hint.hidden = true; state.pendingCarryover = null; return; }
+    var dept = $('f-department').value;
+    var date = $('f-meeting_date').value || new Date().toISOString().slice(0, 10);
+    var prev = findPrevWeekRow(date, dept);
+    if (!prev) { hint.hidden = true; state.pendingCarryover = null; return; }
+    state.pendingCarryover = prev;
+    var openCount = 0, total = 0;
+    parseActionList(prev.actions_md).forEach(function (a) { total++; if (!a.done) openCount++; });
+    text.innerHTML = '<strong>지난 ' + MiniMarkdown.escapeHtml(prev.meeting_date) + ' ' +
+      MiniMarkdown.escapeHtml(prev.department || '') + '</strong> 회의록이 있습니다 — 안건·참석자·미완료 액션(' + openCount + '/' + total + ')을 불러옵니다.';
+    hint.hidden = false;
+  }
+  function applyCarryover() {
+    var prev = state.pendingCarryover;
+    if (!prev) { toast('불러올 지난 주 회의록이 없습니다', 2200); return; }
+    if (!$('f-title').value) $('f-title').value = prev.title || '';
+    setAttendeesFromText(prev.attendees || '');
+    state.modal.agenda = parseAgendaList(prev.agenda_md);
+    state.modal.decisions = [];
+    var prevActions = parseActionList(prev.actions_md);
+    state.modal.actions = prevActions.filter(function (a) { return !a.done; }).map(function (a) {
+      return { owner: a.owner || '', text: a.text, due: a.due || '', done: false };
+    });
+    renderAgendaQuickList();
+    renderDecisionsQuickList();
+    renderActionsQuickList();
+    toast('지난 ' + prev.meeting_date + ' 회의록을 불러왔습니다 — 수정 후 저장하세요', 3500);
+    $('carryover-hint').hidden = true;
+  }
+
   function openModal(row) {
     state.editingId = row ? row._id : null;
     $('modal-title').textContent = row ? '회의록 수정' : '회의록 작성';
@@ -2477,10 +2702,11 @@ window.STANDALONE_SAMPLE = {
     $('f-action-text').value = '';
     $('f-action-due').value = '';
     $('f-note_md').value = row ? (row.note_md || '') : '';
+    updateCarryoverHint(!row);
     $('modal-overlay').hidden = false;
     setTimeout(function () { $('f-title').focus(); }, 50);
   }
-  function closeModal() { $('modal-overlay').hidden = true; state.editingId = null; }
+  function closeModal() { $('modal-overlay').hidden = true; state.editingId = null; var h = $('carryover-hint'); if (h) h.hidden = true; state.pendingCarryover = null; }
 
   function saveModal() {
     try {
@@ -2632,6 +2858,15 @@ window.STANDALONE_SAMPLE = {
     });
     $('f-department').addEventListener('change', function (e) {
       updateProjectOptions(e.target.value);
+      if (!state.editingId) updateCarryoverHint(true);
+    });
+    $('f-meeting_date').addEventListener('change', function () {
+      if (!state.editingId) updateCarryoverHint(true);
+    });
+    if ($('carryover-btn')) $('carryover-btn').addEventListener('click', applyCarryover);
+    if ($('carryover-dismiss')) $('carryover-dismiss').addEventListener('click', function () {
+      $('carryover-hint').hidden = true;
+      state.pendingCarryover = null;
     });
 
     function wireTree(name, getList, listEl, inputEl, addBtn, render) {
@@ -2747,6 +2982,51 @@ window.STANDALONE_SAMPLE = {
         LocalIssues.remove(b.getAttribute('data-issue-id'));
         renderLiveIssues();
       }
+    });
+
+    // 주차별 주요 안건 — 추가/토글/이월/삭제/지난주 가져오기
+    var agendaInput = $('weekly-agenda-input');
+    var agendaAddBtn = $('weekly-agenda-add-btn');
+    var agendaList = $('weekly-agenda-list');
+    var agendaPrev = $('weekly-agenda-prev');
+    function addWeeklyAgenda() {
+      if (!agendaInput || !window.LocalAgendas) return;
+      var v = agendaInput.value.trim();
+      if (!v) return;
+      LocalAgendas.add(v, activeWeek());
+      agendaInput.value = '';
+      renderWeeklyAgendas();
+      agendaInput.focus();
+    }
+    if (agendaAddBtn) agendaAddBtn.addEventListener('click', addWeeklyAgenda);
+    if (agendaInput) agendaInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); addWeeklyAgenda(); }
+    });
+    if (agendaList) agendaList.addEventListener('click', function (e) {
+      if (!window.LocalAgendas) return;
+      var rem = e.target.closest('[data-agenda-remove]');
+      if (rem) { LocalAgendas.remove(rem.getAttribute('data-agenda-remove')); renderWeeklyAgendas(); return; }
+    });
+    if (agendaList) agendaList.addEventListener('change', function (e) {
+      if (!window.LocalAgendas) return;
+      var t = e.target;
+      if (t.matches('[data-agenda-toggle]')) {
+        LocalAgendas.update(t.getAttribute('data-agenda-toggle'), { status: t.checked ? 'done' : 'open' });
+        renderWeeklyAgendas();
+      } else if (t.matches('[data-agenda-carry]')) {
+        LocalAgendas.update(t.getAttribute('data-agenda-carry'), { carryToNext: t.checked });
+      }
+    });
+    if (agendaPrev) agendaPrev.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-carry-now]');
+      if (!btn || !window.LocalAgendas) return;
+      var id = btn.getAttribute('data-carry-now');
+      var src = LocalAgendas.list().filter(function (a) { return a.id === id; })[0];
+      if (!src) return;
+      LocalAgendas.add(src.text, activeWeek());
+      LocalAgendas.update(id, { carryToNext: false });
+      renderWeeklyAgendas();
+      toast('이번 주 안건으로 가져왔습니다', 2200);
     });
 
     var kpiCard = $('kpi-meetings-card');

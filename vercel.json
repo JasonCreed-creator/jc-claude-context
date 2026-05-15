@@ -3,9 +3,6 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/docs/index.html" },
-    { "source": "/assets/:path*", "destination": "/docs/assets/:path*" },
-    { "source": "/config.json", "destination": "/docs/config.json" },
-    { "source": "/sample-data.json", "destination": "/docs/sample-data.json" }
+    { "source": "/", "destination": "/dashboard.html" }
   ]
 }

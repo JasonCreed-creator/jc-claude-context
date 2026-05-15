@@ -784,7 +784,7 @@ body {
       </select>
       <input type="search" id="search-input" class="control" placeholder="키워드 검색…" aria-label="키워드 검색" />
       <button id="add-btn" class="btn btn--primary">＋ 회의록 작성</button>
-      <a id="edit-link" class="btn btn--ghost" href="#" target="_blank" rel="noopener" hidden>시트 편집</a>
+      <a id="edit-link" class="btn btn--ghost" href="#" target="_blank" rel="noopener">시트 열기</a>
       <button id="export-btn" class="btn btn--ghost btn--sm" title="로컬 데이터를 JSON으로 내보내기">↓ Export</button>
       <button id="import-btn" class="btn btn--ghost btn--sm" title="JSON 파일에서 가져오기">↑ Import</button>
       <input type="file" id="import-file" accept="application/json" hidden />
@@ -2816,9 +2816,27 @@ window.STANDALONE_SAMPLE = {
     } else {
       addBtn.title = '로컬에 회의록 저장 (구글폼 미설정)';
     }
-    if (config.links && config.links.edit_url) { edit.href = config.links.edit_url; edit.hidden = false; }
-    else if (config.sheet && config.sheet.id) { edit.href = 'https://docs.google.com/spreadsheets/d/' + config.sheet.id + '/edit'; edit.hidden = false; }
-    else { edit.hidden = true; }
+    var sheetUrl = '';
+    if (config.links && config.links.edit_url) sheetUrl = config.links.edit_url;
+    else if (config.sheet && config.sheet.id) sheetUrl = 'https://docs.google.com/spreadsheets/d/' + config.sheet.id + '/edit';
+    if (sheetUrl) {
+      edit.href = sheetUrl;
+      edit.removeAttribute('data-no-sheet');
+      edit.title = '연결된 구글시트를 새 탭으로 엽니다';
+    } else {
+      edit.href = '#';
+      edit.setAttribute('data-no-sheet', '1');
+      edit.title = '구글시트 미연결 — dashboard.html 상단 STANDALONE_CONFIG.sheet.id 에 시트 ID를 입력하면 활성화';
+    }
+    if (!edit._wired) {
+      edit.addEventListener('click', function (e) {
+        if (edit.getAttribute('data-no-sheet')) {
+          e.preventDefault();
+          toast('구글시트 미연결 — STANDALONE_CONFIG.sheet.id 에 시트 ID를 입력하세요. 미연결 시 모든 회의록은 로컬에만 저장됩니다.', 5000);
+        }
+      });
+      edit._wired = true;
+    }
   }
 
   function startPollingLocal() {

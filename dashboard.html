@@ -784,7 +784,7 @@ body {
       </select>
       <input type="search" id="search-input" class="control" placeholder="키워드 검색…" aria-label="키워드 검색" />
       <button id="add-btn" class="btn btn--primary">＋ 회의록 작성</button>
-      <a id="edit-link" class="btn btn--ghost" href="#" target="_blank" rel="noopener" hidden>시트 편집</a>
+      <a id="edit-link" class="btn btn--ghost" href="#" target="_blank" rel="noopener">시트 열기</a>
       <button id="export-btn" class="btn btn--ghost btn--sm" title="로컬 데이터를 JSON으로 내보내기">↓ Export</button>
       <button id="import-btn" class="btn btn--ghost btn--sm" title="JSON 파일에서 가져오기">↑ Import</button>
       <input type="file" id="import-file" accept="application/json" hidden />
@@ -1058,7 +1058,7 @@ body {
         <button id="modal-close" class="modal__close" aria-label="닫기">×</button>
       </header>
       <div class="modal__body">
-        <form id="meeting-form" autocomplete="off">
+        <form id="meeting-form" autocomplete="off" onsubmit="event.preventDefault();return false;">
           <input type="hidden" id="f-id" />
           <div class="field__row">
             <div class="field">
@@ -1102,10 +1102,6 @@ body {
               <button type="button" id="f-agenda-add" class="btn btn--primary btn--sm">+ 추가</button>
             </div>
           </div>
-          <!-- 회의 중 이슈/메모는 메인 화면 '실시간 이슈/메모' 섹션으로 이동 -->
-          <input type="hidden" id="f-issues-list" />
-          <input type="hidden" id="f-issues-input" />
-          <input type="hidden" id="f-issues-add" />
           <div class="field">
             <label class="field__label">결정사항</label>
             <div class="quick-list" id="f-decisions-list"></div>
@@ -1812,7 +1808,6 @@ window.STANDALONE_SAMPLE = {
     var rate = totals.total === 0 ? 0 : Math.round((totals.done / totals.total) * 100);
     function setText(id, v) { var e = el(id); if (e) e.textContent = v; }
     setText('kpi-meetings', weekRows.length);
-    setText('kpi-actions', totals.total);
     setText('kpi-completion', rate);
     setText('kpi-open', open);
     var bar = el('kpi-completion-bar');
@@ -2062,11 +2057,13 @@ window.STANDALONE_SAMPLE = {
         ) +
       '</div>';
 
-    if (isLocal && callbacks) {
-      var editBtn = panel.querySelector('[data-act="edit"]');
-      var delBtn = panel.querySelector('[data-act="delete"]');
-      if (editBtn) editBtn.addEventListener('click', function () { callbacks.onEdit(row); });
-      if (delBtn) delBtn.addEventListener('click', function () { callbacks.onDelete(row); });
+    if (callbacks) {
+      if (isLocal) {
+        var editBtn = panel.querySelector('[data-act="edit"]');
+        var delBtn = panel.querySelector('[data-act="delete"]');
+        if (editBtn) editBtn.addEventListener('click', function () { callbacks.onEdit(row); });
+        if (delBtn) delBtn.addEventListener('click', function () { callbacks.onDelete(row); });
+      }
       var checks = panel.querySelectorAll('.action-list .task-checkbox');
       checks.forEach(function (cb) {
         cb.addEventListener('click', function () {
@@ -2084,7 +2081,7 @@ window.STANDALONE_SAMPLE = {
 (function (global) {
   'use strict';
   var STORAGE_KEY_THEME = 'jc-meeting-dashboard:theme';
-  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], issues: [], decisions: [], actions: [] } };
+  var state = { config: null, rows: [], filter: { week: 'all', project: 'all', department: 'all', keyword: '' }, selectedKey: null, stopPolling: null, editingId: null, modal: { agenda: [], decisions: [], actions: [] } };
 
   /* ===== Modal quick-add: parsing, rendering, serialization ===== */
   function parseAgendaList(md) {
@@ -2170,10 +2167,6 @@ window.STANDALONE_SAMPLE = {
   function renderAgendaQuickList() {
     renderTreeQuickList('f-agenda-list', state.modal.agenda,
       'remove-agenda', 'remove-agenda-sub', 'add-agenda-sub', 'sub-input-agenda');
-  }
-  function renderIssuesQuickList() {
-    renderTreeQuickList('f-issues-list', state.modal.issues,
-      'remove-issues', 'remove-issues-sub', 'add-issues-sub', 'sub-input-issues');
   }
   function renderDecisionsQuickList() {
     renderTreeQuickList('f-decisions-list', state.modal.decisions,
@@ -2378,10 +2371,17 @@ window.STANDALONE_SAMPLE = {
     if (!picker) return;
     var dm = (config.team && config.team.dept_members) || {};
     var depts = Object.keys(dm);
+    var seen = Object.create(null);
     var html = '';
     depts.forEach(function (deptName) {
+      var members = (dm[deptName] || []).filter(function (m) {
+        if (seen[m]) return false;
+        seen[m] = true;
+        return true;
+      });
+      if (members.length === 0) return;
       html += '<div class="attendee-picker__group">' + MiniMarkdown.escapeHtml(deptName) + '</div>';
-      dm[deptName].forEach(function (m) {
+      members.forEach(function (m) {
         html += '<label class="attendee-pick">' +
           '<input type="checkbox" value="' + MiniMarkdown.escapeHtml(m) + '">' +
           '<span>' + MiniMarkdown.escapeHtml(m) + '</span></label>';
@@ -2459,22 +2459,20 @@ window.STANDALONE_SAMPLE = {
     $('f-title').value = row ? (row.title || '') : '';
     var defaultProj = (state.config.projects || ['기타'])[0];
     var defaultAuthor = ((state.config.team && state.config.team.members) || [''])[0];
-    var defaultDept = (state.config.departments || [''])[0];
+    var depts = state.config.departments || [''];
+    var defaultDept = depts.indexOf('신사업 기획팀') !== -1 ? '신사업 기획팀' : depts[0];
     $('f-department').value = row ? (row.department || '') : defaultDept;
     updateProjectOptions($('f-department').value);
     $('f-project_tag').value = row ? (row.project_tag || defaultProj) : defaultProj;
     $('f-author').value = row ? (row.author || defaultAuthor) : defaultAuthor;
-    setAttendeesFromText(row ? (row.attendees || '') : ((state.config.team && state.config.team.members) || []).join(', '));
+    setAttendeesFromText(row ? (row.attendees || '') : '');
     state.modal.agenda = row ? parseAgendaList(row.agenda_md) : [];
-    state.modal.issues = row ? parseAgendaList(row.issues_md) : [];
     state.modal.decisions = row ? parseAgendaList(row.decisions_md) : [];
     state.modal.actions = row ? parseActionList(row.actions_md) : [];
     renderAgendaQuickList();
-    renderIssuesQuickList();
     renderDecisionsQuickList();
     renderActionsQuickList();
     $('f-agenda-input').value = '';
-    $('f-issues-input').value = '';
     $('f-decisions-input').value = '';
     $('f-action-text').value = '';
     $('f-action-due').value = '';
@@ -2507,7 +2505,6 @@ window.STANDALONE_SAMPLE = {
         author: $('f-author').value,
         attendees: collectAttendeesText(),
         agenda_md: serializeAgenda('안건', state.modal.agenda),
-        issues_md: serializeAgenda('회의 중 이슈·메모', state.modal.issues),
         decisions_md: serializeAgenda('결정사항', state.modal.decisions),
         actions_md: serializeActions(state.modal.actions),
         next_meeting: $('f-next_meeting').value,
@@ -2692,7 +2689,6 @@ window.STANDALONE_SAMPLE = {
       });
     }
     wireTree('agenda', function () { return state.modal.agenda; }, $('f-agenda-list'), $('f-agenda-input'), $('f-agenda-add'), renderAgendaQuickList);
-    wireTree('issues', function () { return state.modal.issues; }, $('f-issues-list'), $('f-issues-input'), $('f-issues-add'), renderIssuesQuickList);
     wireTree('decisions', function () { return state.modal.decisions; }, $('f-decisions-list'), $('f-decisions-input'), $('f-decisions-add'), renderDecisionsQuickList);
 
     // Quick-add: actions
@@ -2756,13 +2752,19 @@ window.STANDALONE_SAMPLE = {
     var kpiCard = $('kpi-meetings-card');
     if (kpiCard) {
       kpiCard.addEventListener('click', function () {
-        state.filter.week = MeetingFilter.currentWeekISO();
-        $('week-select').value = state.filter.week;
+        var thisWeek = MeetingFilter.currentWeekISO();
+        var weekCount = state.rows.filter(function (r) { return MeetingFilter.rowWeek(r) === thisWeek; }).length;
+        if (weekCount === 0) {
+          toast('이번 주(' + thisWeek + ') 회의록이 없습니다', 2500);
+          return;
+        }
+        state.filter.week = thisWeek;
+        if ($('week-select')) $('week-select').value = thisWeek;
         state.selectedKey = null;
         renderAll();
         var listEl = document.querySelector('.content');
         if (listEl) listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        toast('이번 주 회의록 ' + state.rows.filter(function (r) { return MeetingFilter.rowWeek(r) === state.filter.week; }).length + '건 표시', 2500);
+        toast('이번 주 회의록 ' + weekCount + '건 표시', 2500);
       });
     }
 
@@ -2775,6 +2777,7 @@ window.STANDALONE_SAMPLE = {
       var projects = (state.config && state.config.projects) || [];
       var matched = null;
       for (var i = 0; i < projects.length; i++) {
+        if (projects[i] === '기타') continue;
         if (text.indexOf(projects[i]) !== -1) { matched = projects[i]; break; }
       }
       if (!matched) return;
@@ -2813,9 +2816,27 @@ window.STANDALONE_SAMPLE = {
     } else {
       addBtn.title = '로컬에 회의록 저장 (구글폼 미설정)';
     }
-    if (config.links && config.links.edit_url) { edit.href = config.links.edit_url; edit.hidden = false; }
-    else if (config.sheet && config.sheet.id) { edit.href = 'https://docs.google.com/spreadsheets/d/' + config.sheet.id + '/edit'; edit.hidden = false; }
-    else { edit.hidden = true; }
+    var sheetUrl = '';
+    if (config.links && config.links.edit_url) sheetUrl = config.links.edit_url;
+    else if (config.sheet && config.sheet.id) sheetUrl = 'https://docs.google.com/spreadsheets/d/' + config.sheet.id + '/edit';
+    if (sheetUrl) {
+      edit.href = sheetUrl;
+      edit.removeAttribute('data-no-sheet');
+      edit.title = '연결된 구글시트를 새 탭으로 엽니다';
+    } else {
+      edit.href = '#';
+      edit.setAttribute('data-no-sheet', '1');
+      edit.title = '구글시트 미연결 — dashboard.html 상단 STANDALONE_CONFIG.sheet.id 에 시트 ID를 입력하면 활성화';
+    }
+    if (!edit._wired) {
+      edit.addEventListener('click', function (e) {
+        if (edit.getAttribute('data-no-sheet')) {
+          e.preventDefault();
+          toast('구글시트 미연결 — STANDALONE_CONFIG.sheet.id 에 시트 ID를 입력하세요. 미연결 시 모든 회의록은 로컬에만 저장됩니다.', 5000);
+        }
+      });
+      edit._wired = true;
+    }
   }
 
   function startPollingLocal() {
